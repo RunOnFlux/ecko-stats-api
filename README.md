@@ -1,1 +1,1 @@
-# kaddex-stats-api-
+# kaddex-stats-api
