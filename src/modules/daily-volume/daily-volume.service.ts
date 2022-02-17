@@ -29,4 +29,6 @@ export class DailyVolumesService {
       .create(createDailyVolume);
     return document;
   }
+
+  // async getDailyVolume() {}
 }

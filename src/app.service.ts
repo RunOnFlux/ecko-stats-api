@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConsoleLogger } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as moment from 'moment';
@@ -9,9 +9,12 @@ import { DailyVolumeDto } from './modules/daily-volume/dto/create-daily-volume.d
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, mongo } from 'mongoose';
 import { DailyVolumeSchema } from './modules/daily-volume/schemas/daily-volume.schema';
+import { Command, Console } from 'nestjs-console';
 
 @Injectable()
+@Console()
 export class AppService {
+  private readonly logger = new ConsoleLogger(AppService.name);
   constructor(
     private readonly httpService: HttpService,
     @InjectConnection() private connection: Connection,
@@ -35,14 +38,25 @@ export class AppService {
       .pipe(map((response) => response.data));
   }
 
+  @Command({
+    command: 'stats:import <eventName>',
+    description: 'Import stats for a specific eventName',
+  })
+  async statsImportCommand(eventName: string) {
+    await this.statsImport(eventName);
+  }
+
   async statsImport(eventName: string): Promise<any> {
+    this.logger.log('START IMPORT');
     const limit = 100;
     let offset = 0;
     let analyzingData: DailyVolumeDto[] = [];
     const collections = await this.connection.db.listCollections().toArray();
     if (collections.find((coll) => coll.name === eventName)) {
+      this.logger.log('DROPPING COLLECTION ' + eventName);
       await this.connection.db.dropCollection(eventName);
     }
+
     let hasResult = true;
 
     do {
@@ -75,6 +89,15 @@ export class AppService {
         });
         // const objId = new mongo.ObjectId()
         if (!statFounded) {
+          this.logger.log(
+            `Creating stat for [${refDataFrom?.refName?.name}:${
+              refDataTo?.refName?.name
+            }] ${moment(blockTime)
+              .hours(0)
+              .minutes(0)
+              .seconds(0)
+              .format('YYYY-MM-DD')}`,
+          );
           analyzingData.push({
             id: new mongo.ObjectId(),
             day: moment(blockTime).hours(0).minutes(0).seconds(0).toDate(),
@@ -127,6 +150,8 @@ export class AppService {
       }
       offset += limit;
     } while (hasResult);
+
+    this.logger.log('IMPORT TERMINATED FOR' + eventName);
     return 'events';
   }
 }
