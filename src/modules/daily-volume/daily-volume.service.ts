@@ -16,8 +16,43 @@ export class DailyVolumesService {
     @InjectConnection() private connection: Connection,
   ) {}
 
-  async findAll(): Promise<DailyVolume[]> {
-    return this.dailyVolumeModel.find().exec();
+  async findAll(
+    eventName: string,
+    dateStart: Date,
+    dateEnd: Date,
+  ): Promise<any[]> {
+    return await this.connection
+      .collection(eventName)
+      .find({
+        dayString: {
+          $gte: dateStart,
+          $lte: dateEnd,
+        },
+      })
+      .sort('dayString')
+      .toArray();
+  }
+
+  async findAllAggregate(
+    eventName: string,
+    dateStart: Date,
+    dateEnd: Date,
+  ): Promise<any> {
+    return await this.connection
+      .collection(eventName)
+      .aggregate([
+        {
+          $match: {
+            dayString: {
+              $gte: dateStart,
+              $lte: dateEnd,
+            },
+          },
+        },
+        { $group: { _id: '$dayString', volumes: { $push: '$$ROOT' } } },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray();
   }
 
   async create(
@@ -29,6 +64,4 @@ export class DailyVolumesService {
       .create(createDailyVolume);
     return document;
   }
-
-  // async getDailyVolume() {}
 }
