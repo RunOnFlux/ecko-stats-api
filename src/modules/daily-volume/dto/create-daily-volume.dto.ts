@@ -5,6 +5,8 @@ export class DailyVolumeDto {
 
   day: Date;
 
+  dayString: string;
+
   chain: number;
 
   tokenFromNamespace: string;

@@ -9,6 +9,9 @@ export class DailyVolume {
   day: Date;
 
   @Prop()
+  dayString: string;
+
+  @Prop()
   chain: number;
 
   @Prop()
