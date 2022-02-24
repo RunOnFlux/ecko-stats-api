@@ -1,6 +1,6 @@
-import { IChainwebStat } from 'src/interfaces/chainweb-stat.interface';
+import { IKSwapExchangeSWAP } from 'src/interfaces/kswap.exchange.SWAP.interface';
 
-export const statElement: IChainwebStat = {
+export const statElement: IKSwapExchangeSWAP = {
   blockTime: new Date('2022-02-08T17:43:12.09707Z'), // transaction date
   height: 2397641,
   blockHash: 'APOYBKcuFXs-RGckSXoaHzFREOPQ92U1udUmVl1QWbg',

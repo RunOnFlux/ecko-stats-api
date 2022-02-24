@@ -1,44 +1,23 @@
-import { Connection, Model, mongo } from 'mongoose';
-import { ConsoleLogger, Injectable } from '@nestjs/common';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { DailyVolumeDto } from './dto/create-daily-volume.dto';
-import * as moment from 'moment';
-import * as _ from 'lodash';
-import {
-  DailyVolume,
-  DailyVolumeDocument,
-  DailyVolumeSchema,
-} from './schemas/daily-volume.schema';
-import { lastValueFrom, map } from 'rxjs';
-import { IKSwapExchangeSWAP } from 'src/interfaces/kswap.exchange.SWAP.interface';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { Command, Console } from 'nestjs-console';
 import { HttpService } from '@nestjs/axios';
+import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection, Model, mongo } from 'mongoose';
+import { lastValueFrom, map } from 'rxjs';
+import * as moment from 'moment';
+import { DailyTVLDto } from './dto/create-daily-tvl.dto';
+import { DailyTVLDocument } from './schemas/daily-tvl.schema';
+import { IKSwapExchangeSWAP } from 'src/interfaces/kswap.exchange.SWAP.interface';
+import { DailyVolumeSchema } from '../daily-volume/schemas/daily-volume.schema';
 
-@Console()
 @Injectable()
-export class DailyVolumesService {
-  private readonly logger = new ConsoleLogger(DailyVolumesService.name);
+export class DailyTvlService {
+  private readonly logger = new ConsoleLogger(DailyTvlService.name);
   constructor(
-    @InjectModel(DailyVolume.name)
-    private dailyVolumeModel: Model<DailyVolumeDocument>,
+    //   @InjectModel(DailyVolume.name)
+    private dailyVolumeModel: Model<DailyTVLDocument>,
     @InjectConnection() private connection: Connection,
     private readonly httpService: HttpService,
   ) {}
-
-  @Command({
-    command: 'stats:import <eventName>',
-    description: 'Import stats for a specific eventName',
-  })
-  async statsImportCommand(eventName: string) {
-    const collections = await this.connection.db.listCollections().toArray();
-    if (collections.find((coll) => coll.name === eventName)) {
-      this.logger.log('DROPPING COLLECTION ' + eventName);
-      await this.connection.db.dropCollection(eventName);
-    }
-    await this.statsImport(eventName);
-  }
-
   stats(name: string, limit: number, offset: number): any {
     return this.httpService
       .get(`https://estats.chainweb.com/txs/events`, {
@@ -51,21 +30,6 @@ export class DailyVolumesService {
       .pipe(map((response) => response.data));
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
-  async dailyStatsImport() {
-    await this.statsImport(
-      'kswap.exchange.SWAP',
-      moment().subtract(1, 'days').toDate(),
-      moment().subtract(1, 'days').toDate(),
-    );
-  }
-
-  /**
-   *
-   * @param eventName pact event to analyze (kswap.exchange.SWAP)
-   * @param dayStart import start date
-   * @param dayEnd import end date
-   */
   async statsImport(
     eventName: string,
     dayStart?: Date,
@@ -74,7 +38,7 @@ export class DailyVolumesService {
     this.logger.log('START IMPORT');
     const limit = 100;
     let offset = 0;
-    let analyzingData: DailyVolumeDto[] = [];
+    let analyzingData: DailyTVLDto[] = [];
 
     const dayStartString = dayStart && moment(dayStart).format('YYYY-MM-DD');
     const dayEndString = dayEnd && moment(dayEnd).format('YYYY-MM-DD');
@@ -108,10 +72,8 @@ export class DailyVolumesService {
               moment(st.day).format('YYYY-MM-DD') ===
                 moment(blockTime).format('YYYY-MM-DD') &&
               st.chain === chain &&
-              st.tokenFromName === refDataFrom?.refName?.name &&
               st.tokenFromNamespace === refDataFrom?.refName?.namespace &&
-              st.tokenToNamespace === refDataTo?.refName?.namespace &&
-              st.tokenToName === refDataTo?.refName?.name
+              st.tokenToNamespace === refDataTo?.refName?.namespace
             );
           });
           // const objId = new mongo.ObjectId()
@@ -131,24 +93,17 @@ export class DailyVolumesService {
               dayString: moment(blockTime).format('YYYY-MM-DD'),
               chain,
               tokenFromNamespace: refDataFrom?.refName?.namespace,
-              tokenFromName: refDataFrom?.refName?.name,
               tokenToNamespace: refDataTo?.refName?.namespace,
-              tokenToName: refDataTo?.refName?.name,
-              tokenFromVolume: 0,
-              tokenToVolume: 0,
+              tokenFromTVL: 0,
+              tokenToTVL: 0,
             });
-          } else {
-            statFounded.tokenFromVolume += tokenFromQuantity;
-            statFounded.tokenToVolume += tokenToQuantity;
           }
         }
         // group by pair-chain, order by day, save all days greater then last
         const groupedByPair = _.groupBy(
           analyzingData,
-          (analyzedStat: DailyVolumeDto) =>
-            analyzedStat.tokenFromName +
+          (analyzedStat: DailyTVLDto) =>
             analyzedStat.tokenFromNamespace +
-            analyzedStat.tokenToName +
             analyzedStat.tokenToNamespace +
             analyzedStat.chain,
           [
@@ -162,7 +117,7 @@ export class DailyVolumesService {
         for (const key of Object.keys(groupedByPair)) {
           if (groupedByPair[key].length > 1) {
             // I'm sure past days are completed
-            let ascDay: DailyVolumeDto[] = _.orderBy(
+            let ascDay: DailyTVLDto[] = _.orderBy(
               groupedByPair[key],
               ['day'],
               ['desc'],
@@ -201,59 +156,4 @@ export class DailyVolumesService {
     this.logger.log('IMPORT TERMINATED FOR ' + eventName);
     process.exit();
   }
-
-  async findAll(
-    eventName: string,
-    dateStart: Date,
-    dateEnd: Date,
-  ): Promise<any[]> {
-    return await this.connection
-      .collection(eventName)
-      .find({
-        dayString: {
-          $gte: dateStart,
-          $lte: dateEnd,
-        },
-      })
-      .sort('dayString')
-      .toArray();
-  }
-
-  async findAllAggregate(
-    eventName: string,
-    dateStart: Date,
-    dateEnd: Date,
-  ): Promise<any> {
-    return await this.connection
-      .collection(eventName)
-      .aggregate([
-        {
-          $match: {
-            dayString: {
-              $gte: dateStart,
-              $lte: dateEnd,
-            },
-          },
-        },
-        { $group: { _id: '$dayString', volumes: { $push: '$$ROOT' } } },
-        { $sort: { _id: 1 } },
-      ])
-      .toArray();
-  }
-
-  async create(
-    collectionName: string,
-    createDailyVolume: DailyVolumeDto,
-  ): Promise<any> {
-    const document = await this.connection
-      .model(collectionName, DailyVolumeSchema)
-      .create(createDailyVolume);
-    return document;
-  }
 }
-
-/**
- * error
- *  ERROR [ExceptionsHandler] kswap.exchange.SWAP validation failed:
- *  tokenToVolume: Cast to Number failed for value "4176.447669860936[object Object]2236.0882866307171131.2700374000191904.5694043171612320.0622012006493550.6186562010093021.8531021861553021.8531021861551100.076108285381928.3025101627411288.397426228652012.7817438181671279.968661811401901.0331557787211202.1148280367782616.280302989999992.33818383623" (type string) at path "tokenToVolume"
- */

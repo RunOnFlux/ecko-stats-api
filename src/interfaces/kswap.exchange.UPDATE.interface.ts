@@ -3,17 +3,16 @@ export interface IRef {
   name: string;
 }
 
-export interface IRefData {
-  refSpec: IRef[];
-  refName: IRef;
+export interface IDecimalData {
+  decimal: string;
 }
 
-export interface IChainwebStat {
+export interface IKSwapExchangeUPDATE {
   blockTime: Date;
   height: number;
   blockHash: string;
   requestKey: string;
-  params: [string, string, number, IRefData, number, IRefData];
+  params: [string, IDecimalData, number];
   name: string;
   idx: number;
   chain: number;
