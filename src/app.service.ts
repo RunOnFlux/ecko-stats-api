@@ -4,13 +4,16 @@ import { lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as moment from 'moment';
 import * as _ from 'lodash';
-import { IChainwebStat } from './interfaces/chainweb-stat.interface';
+import { IKSwapExchangeSWAP } from './interfaces/kswap.exchange.SWAP.interface';
 import { DailyVolumeDto } from './modules/daily-volume/dto/create-daily-volume.dto';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, mongo } from 'mongoose';
 import { DailyVolumeSchema } from './modules/daily-volume/schemas/daily-volume.schema';
 import { Command, Console } from 'nestjs-console';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { DailyTVLDto } from './modules/daily-tvl/dto/create-daily-tvl.dto';
+import { IKSwapExchangeUPDATE } from './interfaces/kswap.exchange.UPDATE.interface';
+import { DailyTVLSchema } from './modules/daily-tvl/schemas/daily-tvl.schema';
 
 @Injectable()
 @Console()
@@ -28,6 +31,16 @@ export class AppService {
     };
   }
 
+  getApiBalance(apiBalance) {
+    let balance = 0;
+    if (typeof apiBalance === 'number') {
+      balance = apiBalance;
+    } else if (apiBalance?.decimal && !Number.isNaN(apiBalance?.decimal)) {
+      balance = Number(apiBalance?.decimal);
+    }
+    return balance;
+  }
+
   stats(name: string, limit: number, offset: number): any {
     return this.httpService
       .get(`https://estats.chainweb.com/txs/events`, {
@@ -41,22 +54,42 @@ export class AppService {
   }
 
   @Command({
-    command: 'stats:import <eventName>',
-    description: 'Import stats for a specific eventName',
+    command: 'import:volume <eventName>',
   })
-  async statsImportCommand(eventName: string) {
+  async volumeImportCommand(eventName: string) {
     const collections = await this.connection.db.listCollections().toArray();
     if (collections.find((coll) => coll.name === eventName)) {
       this.logger.log('DROPPING COLLECTION ' + eventName);
       await this.connection.db.dropCollection(eventName);
     }
-    await this.statsImport(eventName);
+    await this.volumeImport(eventName);
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
-  async dailyStatsImport() {
-    await this.statsImport(
+  async dailyVolumeImport() {
+    await this.volumeImport(
       'kswap.exchange.SWAP',
+      moment().subtract(1, 'days').toDate(),
+      moment().subtract(1, 'days').toDate(),
+    );
+  }
+
+  @Command({
+    command: 'import:tvl <eventName>',
+  })
+  async tvlImportCommand(eventName: string) {
+    const collections = await this.connection.db.listCollections().toArray();
+    if (collections.find((coll) => coll.name === eventName)) {
+      this.logger.log('DROPPING COLLECTION ' + eventName);
+      await this.connection.db.dropCollection(eventName);
+    }
+    await this.tvlImport(eventName);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  async dailyTVLImport() {
+    await this.tvlImport(
+      'kswap.exchange.UPDATE',
       moment().subtract(1, 'days').toDate(),
       moment().subtract(1, 'days').toDate(),
     );
@@ -64,18 +97,144 @@ export class AppService {
 
   /**
    *
-   * @param eventName pact event to analyze (kswap.exchange.SWAP)
+   * @param eventName pact event to analyze (kswap.exchange.UPDATE)
    * @param dayStart import start date
    * @param dayEnd import end date
    */
-  async statsImport(
+  async tvlImport(
     eventName: string,
     dayStart?: Date,
     dayEnd?: Date,
   ): Promise<any> {
-    this.logger.log('START IMPORT');
+    this.logger.log('START TVL IMPORT');
     const limit = 100;
     let offset = 0;
+    let analyzingData: DailyTVLDto[] = [];
+
+    const dayStartString = dayStart && moment(dayStart).format('YYYY-MM-DD');
+    const dayEndString = dayEnd && moment(dayEnd).format('YYYY-MM-DD');
+
+    let hasResult = true;
+    let lastDay: string = null;
+    const hasDateRange = dayStartString && dayEndString;
+
+    do {
+      try {
+        const eventsData: any = await this.stats(eventName, limit, offset);
+        const eventsStat: IKSwapExchangeUPDATE[] = await lastValueFrom(
+          eventsData,
+        );
+        hasResult = eventsStat?.length > 0;
+        for (const stat of eventsStat) {
+          const {
+            blockTime,
+            height,
+            blockHash,
+            requestKey,
+            params: [pairName, token1, token2],
+            name,
+            idx,
+            chain,
+            moduleHash,
+          } = stat;
+          const [tokenFrom, tokenTo] = pairName.split(':');
+          const statFounded = analyzingData.find((st) => {
+            return (
+              moment(st.day).format('YYYY-MM-DD') ===
+                moment(blockTime).format('YYYY-MM-DD') &&
+              st.chain === chain &&
+              st.tokenFrom === tokenFrom &&
+              st.tokenTo === tokenTo
+            );
+          });
+          // const objId = new mongo.ObjectId()
+          if (!statFounded) {
+            this.logger.log(
+              `Creating stat for [${pairName}] ${moment(blockTime)
+                .hours(0)
+                .minutes(0)
+                .seconds(0)
+                .format('YYYY-MM-DD')}`,
+            );
+            analyzingData.push({
+              id: new mongo.ObjectId(),
+              day: moment(blockTime).hours(0).minutes(0).seconds(0).toDate(),
+              dayString: moment(blockTime).format('YYYY-MM-DD'),
+              chain,
+              tokenFrom,
+              tokenTo,
+              tokenFromTVL: this.getApiBalance(token1),
+              tokenToTVL: this.getApiBalance(token2),
+            });
+          } else if (statFounded.tokenFromTVL < this.getApiBalance(token1)) {
+            statFounded.tokenFromTVL += this.getApiBalance(token1);
+            statFounded.tokenToTVL += this.getApiBalance(token2);
+          }
+        }
+        // group by pair-chain, order by day, save all days greater then last
+        const groupedByPair = _.groupBy(
+          analyzingData,
+          (analyzedStat: DailyTVLDto) =>
+            analyzedStat.tokenFrom + analyzedStat.tokenTo + analyzedStat.chain,
+          ['tokenFromName', 'tokenToName', 'chain'],
+        );
+        for (const key of Object.keys(groupedByPair)) {
+          if (groupedByPair[key].length > 1) {
+            // I'm sure past days are completed
+            let ascDay: DailyTVLDto[] = _.orderBy(
+              groupedByPair[key],
+              ['day'],
+              ['desc'],
+            );
+            lastDay = ascDay.pop().dayString;
+            if (dayStart) {
+              ascDay = ascDay.filter(
+                (dailyTVL) => dailyTVL.dayString >= dayStartString,
+              );
+            }
+            if (dayEnd) {
+              ascDay = ascDay.filter(
+                (dailyTVL) => dailyTVL.dayString <= dayEndString,
+              );
+            }
+
+            await this.connection
+              .model(eventName, DailyTVLSchema, eventName)
+              .create(ascDay);
+            analyzingData = _.differenceBy(analyzingData, ascDay, (t) => {
+              return t.id.toString();
+            });
+          }
+        }
+        offset += limit;
+      } catch (err) {
+        this.logger.error(err);
+        // continue or try again?
+        offset += limit;
+      }
+    } while (
+      hasResult &&
+      (!hasDateRange || (hasDateRange && lastDay >= dayStartString))
+    );
+
+    this.logger.log('IMPORT TERMINATED FOR ' + eventName);
+    process.exit();
+  }
+  /**
+   *
+   * @param eventName pact event to analyze (kswap.exchange.SWAP)
+   * @param dayStart import start date
+   * @param dayEnd import end date
+   */
+  async volumeImport(
+    eventName: string,
+    dayStart?: Date,
+    dayEnd?: Date,
+  ): Promise<any> {
+    this.logger.log('START VOLUME IMPORT');
+    const limit = 100;
+    let offset = 0;
+    let statFounded = null;
     let analyzingData: DailyVolumeDto[] = [];
 
     const dayStartString = dayStart && moment(dayStart).format('YYYY-MM-DD');
@@ -88,7 +247,9 @@ export class AppService {
     do {
       try {
         const eventsData: any = await this.stats(eventName, limit, offset);
-        const eventsStat: IChainwebStat[] = await lastValueFrom(eventsData);
+        const eventsStat: IKSwapExchangeSWAP[] = await lastValueFrom(
+          eventsData,
+        );
         hasResult = eventsStat?.length > 0;
         for (const stat of eventsStat) {
           const {
@@ -103,7 +264,7 @@ export class AppService {
               refDataTo,
             ],
           } = stat;
-          const statFounded = analyzingData.find((st) => {
+          statFounded = analyzingData.find((st) => {
             return (
               moment(st.day).format('YYYY-MM-DD') ===
                 moment(blockTime).format('YYYY-MM-DD') &&
@@ -138,8 +299,9 @@ export class AppService {
               tokenToVolume: 0,
             });
           } else {
-            statFounded.tokenFromVolume += tokenFromQuantity;
-            statFounded.tokenToVolume += tokenToQuantity;
+            statFounded.tokenFromVolume +=
+              this.getApiBalance(tokenFromQuantity);
+            statFounded.tokenToVolume += this.getApiBalance(tokenToQuantity);
           }
         }
         // group by pair-chain, order by day, save all days greater then last
@@ -190,6 +352,8 @@ export class AppService {
         offset += limit;
       } catch (err) {
         this.logger.error(err);
+        this.logger.debug(statFounded);
+        this.logger.debug({ limit, offset });
         // continue or try again?
         offset += limit;
       }
