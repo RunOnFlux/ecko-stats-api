@@ -15,10 +15,10 @@ export class DailyTVL {
   chain: number;
 
   @Prop()
-  tokenFromNamespace: string;
+  tokenFrom: string;
 
   @Prop()
-  tokenToNamespace: string;
+  tokenTo: string;
 
   @Prop()
   tokenFromTVL: number;

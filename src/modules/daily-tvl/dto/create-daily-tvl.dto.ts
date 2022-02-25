@@ -7,9 +7,9 @@ export class DailyTVLDto {
 
   chain: number;
 
-  tokenFromNamespace: string;
+  tokenFrom: string;
 
-  tokenToNamespace: string;
+  tokenTo: string;
 
   tokenFromTVL: number;
 
