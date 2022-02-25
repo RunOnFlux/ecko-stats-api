@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DailyVolumeModule } from './modules/daily-volume/daily-volume.module';
+import { DailyTvlModule } from './modules/daily-tvl/daily-tvl.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { DailyVolumeModule } from './modules/daily-volume/daily-volume.module';
     MongooseModule.forRoot(process.env.MONGO_DB_URI),
     HttpModule,
     DailyVolumeModule,
+    DailyTvlModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -8,12 +8,23 @@ export interface IRefData {
   refName: IRef;
 }
 
-export interface IChainwebStat {
+export interface ITokenBalanceDecimal {
+  decimal: string;
+}
+
+export interface IKSwapExchangeSWAP {
   blockTime: Date;
   height: number;
   blockHash: string;
   requestKey: string;
-  params: [string, string, number, IRefData, number, IRefData];
+  params: [
+    string,
+    string,
+    number | ITokenBalanceDecimal,
+    IRefData,
+    number,
+    IRefData,
+  ];
   name: string;
   idx: number;
   chain: number;
