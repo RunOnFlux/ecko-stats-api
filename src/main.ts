@@ -8,7 +8,6 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Kaddex Stats API')
-    .setDescription('The Kaddex stats API')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);

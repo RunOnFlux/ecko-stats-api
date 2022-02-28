@@ -1,7 +1,6 @@
 import { Connection, Model } from 'mongoose';
 import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { DailyVolumeDto } from './dto/create-daily-volume.dto';
 import * as _ from 'lodash';
 import {
   DailyVolume,
@@ -10,6 +9,7 @@ import {
 } from './schemas/daily-volume.schema';
 import { Console } from 'nestjs-console';
 import { HttpService } from '@nestjs/axios';
+import { DailyVolumeDto } from './dto/daily-volume.dto';
 
 @Console()
 @Injectable()

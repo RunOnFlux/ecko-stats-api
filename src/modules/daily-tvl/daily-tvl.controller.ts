@@ -1,18 +1,24 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DailyTvlService } from './daily-tvl.service';
+import { AggregatedDailyTVLDto } from './dto/aggregated-daily-tvl.dto';
 
 @Controller('daily-tvl')
+@ApiTags('TVL')
 export class DailyTvlController {
   constructor(private readonly dailyTvlService: DailyTvlService) {}
 
   @Get()
+  @ApiOperation({ summary: `Get aggregated Total value locked data` })
+  @ApiOkResponse({
+    type: AggregatedDailyTVLDto,
+  })
   async findAll(
-    @Query('eventName') eventName: string,
     @Query('dateStart') dateStart: Date,
     @Query('dateEnd') dateEnd: Date,
   ) {
     return await this.dailyTvlService.findAllAggregate(
-      eventName,
+      'kswap.exchange.UPDATE',
       dateStart,
       dateEnd,
     );

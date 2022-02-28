@@ -5,13 +5,13 @@ import { map } from 'rxjs/operators';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import { IKSwapExchangeSWAP } from './interfaces/kswap.exchange.SWAP.interface';
-import { DailyVolumeDto } from './modules/daily-volume/dto/create-daily-volume.dto';
+import { DailyVolumeDto } from './modules/daily-volume/dto/daily-volume.dto';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, mongo } from 'mongoose';
 import { DailyVolumeSchema } from './modules/daily-volume/schemas/daily-volume.schema';
 import { Command, Console } from 'nestjs-console';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { DailyTVLDto } from './modules/daily-tvl/dto/create-daily-tvl.dto';
+import { DailyTVLDto } from './modules/daily-tvl/dto/daily-tvl.dto';
 import { IKSwapExchangeUPDATE } from './interfaces/kswap.exchange.UPDATE.interface';
 import { DailyTVLSchema } from './modules/daily-tvl/schemas/daily-tvl.schema';
 
