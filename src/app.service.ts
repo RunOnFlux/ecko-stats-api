@@ -65,7 +65,7 @@ export class AppService {
     await this.volumeImport(eventName);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async dailyVolumeImport() {
     await this.volumeImport(
       'kswap.exchange.SWAP',
@@ -86,7 +86,7 @@ export class AppService {
     await this.tvlImport(eventName);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async dailyTVLImport() {
     await this.tvlImport(
       'kswap.exchange.UPDATE',
@@ -218,7 +218,6 @@ export class AppService {
     );
 
     this.logger.log('IMPORT TERMINATED FOR ' + eventName);
-    process.exit();
   }
   /**
    *
@@ -363,7 +362,6 @@ export class AppService {
     );
 
     this.logger.log('IMPORT TERMINATED FOR ' + eventName);
-    process.exit();
   }
 }
 
