@@ -10,6 +10,7 @@ import {
 import { Console } from 'nestjs-console';
 import { HttpService } from '@nestjs/axios';
 import { DailyVolumeDto } from './dto/daily-volume.dto';
+import { VolumeAggregationEnum } from './daily-volume.controller';
 
 @Console()
 @Injectable()
@@ -39,7 +40,7 @@ export class DailyVolumesService {
       .toArray();
   }
 
-  async findAllAggregate(
+  async findAllAggregateByDay(
     eventName: string,
     dateStart: Date,
     dateEnd: Date,
@@ -56,6 +57,76 @@ export class DailyVolumesService {
           },
         },
         { $group: { _id: '$dayString', volumes: { $push: '$$ROOT' } } },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray();
+  }
+
+  async findAllAggregateByWeek(
+    eventName: string,
+    dateStart: Date,
+    dateEnd: Date,
+  ): Promise<any> {
+    return await this.connection
+      .collection(eventName)
+      .aggregate([
+        {
+          $match: {
+            dayString: {
+              $gte: dateStart,
+              $lte: dateEnd,
+            },
+          },
+        },
+        {
+          $project: {
+            tokenToVolume: 1,
+            week: { $toString: { $week: '$day' } },
+            year: { $toString: { $year: '$day' } },
+          },
+        },
+        {
+          $group: {
+            _id: { $concat: ['$year', '-W', '$week'] },
+            // volumes: { $push: '$$ROOT' },
+            total: { $sum: '$tokenToVolume' },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ])
+      .toArray();
+  }
+
+  async findAllAggregateByMonth(
+    eventName: string,
+    dateStart: Date,
+    dateEnd: Date,
+  ): Promise<any> {
+    return await this.connection
+      .collection(eventName)
+      .aggregate([
+        {
+          $match: {
+            dayString: {
+              $gte: dateStart,
+              $lte: dateEnd,
+            },
+          },
+        },
+        {
+          $project: {
+            tokenToVolume: 1,
+            month: { $toString: { $month: '$day' } },
+            year: { $toString: { $year: '$day' } },
+          },
+        },
+        {
+          $group: {
+            _id: { $concat: ['$year', '-', '$month'] },
+            // volumes: { $push: '$$ROOT' },
+            total: { $sum: '$tokenToVolume' },
+          },
+        },
         { $sort: { _id: 1 } },
       ])
       .toArray();

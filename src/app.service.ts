@@ -187,6 +187,11 @@ export class AppService {
               ['desc'],
             );
             lastDay = ascDay.pop().dayString;
+            ascDay = ascDay.filter(
+              (dailyVol) =>
+                moment(dailyVol.day).format('YYYY-MM-DD') !=
+                moment().format('YYYY-MM-DD'),
+            );
             if (dayStart) {
               ascDay = ascDay.filter(
                 (dailyTVL) => dailyTVL.dayString >= dayStartString,
@@ -329,6 +334,11 @@ export class AppService {
               ['desc'],
             );
             lastDay = ascDay.pop().dayString;
+            ascDay = ascDay.filter(
+              (dailyVol) =>
+                moment(dailyVol.day).format('YYYY-MM-DD') !=
+                moment().format('YYYY-MM-DD'),
+            );
             if (dayStart) {
               ascDay = ascDay.filter(
                 (dailyVol) => dailyVol.dayString >= dayStartString,
