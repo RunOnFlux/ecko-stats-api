@@ -3,12 +3,12 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DailyTvlService } from './daily-tvl.service';
 import { AggregatedDailyTVLDto } from './dto/aggregated-daily-tvl.dto';
 
-@Controller('daily-tvl')
+@Controller('tvl')
 @ApiTags('TVL')
 export class DailyTvlController {
   constructor(private readonly dailyTvlService: DailyTvlService) {}
 
-  @Get()
+  @Get('daily')
   @ApiOperation({ summary: `Get aggregated Total value locked data` })
   @ApiOkResponse({
     type: AggregatedDailyTVLDto,

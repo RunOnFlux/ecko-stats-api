@@ -8,53 +8,62 @@ import {
 import { DailyVolumesService } from './daily-volume.service';
 import { AggregatedDailyVolumeDto } from './dto/aggregated-daily-volume.dto';
 
-export enum VolumeAggregationEnum {
-  day = 'day',
-  week = 'week',
-  month = 'month',
-}
-
-@Controller('daily-volume')
+@Controller('volume')
 @ApiTags('Volume')
 export class DailyVolumeController {
-  constructor(private readonly dalyVolumeService: DailyVolumesService) {}
+  constructor(private readonly dailyVolumeService: DailyVolumesService) {}
 
-  @Get()
+  @Get('daily')
   @ApiOperation({ summary: `Get aggregated daily volume` })
   @ApiOkResponse({
     type: AggregatedDailyVolumeDto,
   })
-  @ApiQuery({
-    name: 'volumeAggregation',
-    enum: VolumeAggregationEnum,
-  })
-  async findAll(
+  @ApiQuery({ name: 'dateStart', type: Date, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'dateEnd', type: Date, description: 'YYYY-MM-DD' })
+  async dailyVolume(
     @Query('dateStart') dateStart: Date,
     @Query('dateEnd') dateEnd: Date,
-    @Query('volumeAggregation') volumeAggregation: VolumeAggregationEnum,
   ) {
-    switch (volumeAggregation) {
-      case VolumeAggregationEnum.day: {
-        return await this.dalyVolumeService.findAllAggregateByDay(
-          'kswap.exchange.SWAP',
-          dateStart,
-          dateEnd,
-        );
-      }
-      case VolumeAggregationEnum.week: {
-        return await this.dalyVolumeService.findAllAggregateByWeek(
-          'kswap.exchange.SWAP',
-          dateStart,
-          dateEnd,
-        );
-      }
-      case VolumeAggregationEnum.month: {
-        return await this.dalyVolumeService.findAllAggregateByMonth(
-          'kswap.exchange.SWAP',
-          dateStart,
-          dateEnd,
-        );
-      }
-    }
+    return await this.dailyVolumeService.findAllAggregateByDay(
+      'kswap.exchange.SWAP',
+      dateStart,
+      dateEnd,
+    );
+  }
+
+  @Get('weekly')
+  @ApiOperation({ summary: `Get aggregated weekly volume` })
+  @ApiOkResponse({
+    type: AggregatedDailyVolumeDto,
+  })
+  @ApiQuery({ name: 'dateStart', type: Date, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'dateEnd', type: Date, description: 'YYYY-MM-DD' })
+  async weeklyVolume(
+    @Query('dateStart') dateStart: Date,
+    @Query('dateEnd') dateEnd: Date,
+  ) {
+    return await this.dailyVolumeService.findAllAggregateByWeek(
+      'kswap.exchange.SWAP',
+      dateStart,
+      dateEnd,
+    );
+  }
+
+  @Get('monthly')
+  @ApiOperation({ summary: `Get aggregated daily volume` })
+  @ApiOkResponse({
+    type: AggregatedDailyVolumeDto,
+  })
+  @ApiQuery({ name: 'dateStart', type: Date, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'dateEnd', type: Date, description: 'YYYY-MM-DD' })
+  async monthlyVolume(
+    @Query('dateStart') dateStart: Date,
+    @Query('dateEnd') dateEnd: Date,
+  ) {
+    return await this.dailyVolumeService.findAllAggregateByMonth(
+      'kswap.exchange.SWAP',
+      dateStart,
+      dateEnd,
+    );
   }
 }

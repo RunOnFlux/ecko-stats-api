@@ -10,7 +10,6 @@ import {
 import { Console } from 'nestjs-console';
 import { HttpService } from '@nestjs/axios';
 import { DailyVolumeDto } from './dto/daily-volume.dto';
-import { VolumeAggregationEnum } from './daily-volume.controller';
 
 @Console()
 @Injectable()
@@ -81,15 +80,28 @@ export class DailyVolumesService {
         {
           $project: {
             tokenToVolume: 1,
+            tokenFromVolume: 1,
             week: { $toString: { $week: '$day' } },
             year: { $toString: { $year: '$day' } },
+            tokenFromName: '$tokenFromName',
+            tokenToName: '$tokenToName',
           },
         },
         {
           $group: {
-            _id: { $concat: ['$year', '-W', '$week'] },
+            _id: {
+              $concat: [
+                '$year',
+                '-W',
+                '$week',
+                '-',
+                '$tokenFromName',
+                '$tokenToName',
+              ],
+            },
             // volumes: { $push: '$$ROOT' },
-            total: { $sum: '$tokenToVolume' },
+            tokenToVolume: { $sum: '$tokenToVolume' },
+            tokenFromVolume: { $sum: '$tokenFromVolume' },
           },
         },
         { $sort: { _id: 1 } },
@@ -116,15 +128,28 @@ export class DailyVolumesService {
         {
           $project: {
             tokenToVolume: 1,
+            tokenFromVolume: 1,
             month: { $toString: { $month: '$day' } },
             year: { $toString: { $year: '$day' } },
+            tokenFromName: '$tokenFromName',
+            tokenToName: '$tokenToName',
           },
         },
         {
           $group: {
-            _id: { $concat: ['$year', '-', '$month'] },
+            _id: {
+              $concat: [
+                '$year',
+                '-',
+                '$month',
+                '-',
+                '$tokenFromName',
+                '$tokenToName',
+              ],
+            },
             // volumes: { $push: '$$ROOT' },
-            total: { $sum: '$tokenToVolume' },
+            tokenToVolume: { $sum: '$tokenToVolume' },
+            tokenFromVolume: { $sum: '$tokenFromVolume' },
           },
         },
         { $sort: { _id: 1 } },
