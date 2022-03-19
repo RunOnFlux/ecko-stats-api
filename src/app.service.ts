@@ -167,8 +167,8 @@ export class AppService {
               tokenToTVL: this.getApiBalance(token2),
             });
           } else if (statFounded.tokenFromTVL < this.getApiBalance(token1)) {
-            statFounded.tokenFromTVL += this.getApiBalance(token1);
-            statFounded.tokenToTVL += this.getApiBalance(token2);
+            statFounded.tokenFromTVL = this.getApiBalance(token1);
+            statFounded.tokenToTVL = this.getApiBalance(token2);
           }
         }
         // group by pair-chain, order by day, save all days greater then last
