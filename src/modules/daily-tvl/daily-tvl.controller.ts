@@ -2,6 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DailyTvlService } from './daily-tvl.service';
 import { AggregatedDailyTVLDto } from './dto/aggregated-daily-tvl.dto';
+import { TVL_COLLECTION_NAME } from './schemas/daily-tvl.schema';
 
 @Controller('tvl')
 @ApiTags('TVL')
@@ -18,7 +19,7 @@ export class DailyTvlController {
     @Query('dateEnd') dateEnd: Date,
   ) {
     return await this.dailyTvlService.findAllAggregate(
-      'kswap.exchange.UPDATE',
+      TVL_COLLECTION_NAME,
       dateStart,
       dateEnd,
     );
