@@ -4,6 +4,7 @@ import { lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as moment from 'moment';
 import * as _ from 'lodash';
+import * as pact from 'pact-lang-api';
 import { IKSwapExchangeSWAP } from './interfaces/kswap.exchange.SWAP.interface';
 import { DailyVolumeDto } from './modules/daily-volume/dto/daily-volume.dto';
 import { InjectConnection } from '@nestjs/mongoose';
@@ -13,7 +14,11 @@ import { Command, Console } from 'nestjs-console';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DailyTVLDto } from './modules/daily-tvl/dto/daily-tvl.dto';
 import { IKSwapExchangeUPDATE } from './interfaces/kswap.exchange.UPDATE.interface';
-import { DailyTVLSchema } from './modules/daily-tvl/schemas/daily-tvl.schema';
+import {
+  DailyTVLSchema,
+  TVL_COLLECTION_NAME,
+} from './modules/daily-tvl/schemas/daily-tvl.schema';
+import { IKaddexStakingPoolState } from './interfaces/kaddex.staking.get-pool-state.interface';
 
 @Injectable()
 @Console()
@@ -79,9 +84,21 @@ export class AppService {
   })
   async tvlImportCommand(eventName: string) {
     const collections = await this.connection.db.listCollections().toArray();
-    if (collections.find((coll) => coll.name === eventName)) {
-      this.logger.log('DROPPING COLLECTION ' + eventName);
-      await this.connection.db.dropCollection(eventName);
+    if (collections.find((coll) => coll.name === TVL_COLLECTION_NAME)) {
+      this.logger.log('CLEAN COLLECTION ' + TVL_COLLECTION_NAME);
+      const deleted = await this.connection.db
+        .collection(TVL_COLLECTION_NAME)
+        .deleteMany({ tokenFrom: { $ne: 'kaddex.staking-pool-state' } });
+      const stakingDelete = await this.connection.db
+        .collection(TVL_COLLECTION_NAME)
+        .deleteMany({
+          dayString: moment().format('YYYY-MM-DD'),
+          tokenFrom: 'kaddex.staking-pool-state',
+        });
+      this.logger.log('DELETED ' + deleted?.deletedCount + ' RECORDS');
+      this.logger.log(
+        'DELETED STAKING ' + stakingDelete?.deletedCount + ' RECORDS',
+      );
     }
     await this.tvlImport(eventName);
   }
@@ -89,10 +106,52 @@ export class AppService {
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async dailyTVLImport() {
     await this.tvlImport(
-      'kswap.exchange.UPDATE',
+      TVL_COLLECTION_NAME,
       moment().subtract(1, 'days').toDate(),
       moment().subtract(1, 'days').toDate(),
     );
+    await this.dailyStakingTVL();
+  }
+
+  async dailyStakingTVL() {
+    const networkId = process.env.CHAINWEB_NETWORK_ID;
+    const chains = Array.from(Array(20).keys());
+    for (const chainId of chains) {
+      try {
+        const pactResponse = await pact.fetch.local(
+          {
+            pactCode: '(kaddex.staking.get-pool-state)',
+            meta: pact.lang.mkMeta(
+              '',
+              chainId.toString(),
+              0.0000001,
+              150000,
+              Math.round(new Date().getTime() / 1000) - 10,
+              600,
+            ),
+          },
+          `${process.env.CHAINWEB_NODE_URL}/chainweb/0.0/${networkId}/chain/${chainId}/pact`,
+        );
+        const {
+          result: { data },
+        }: { result: { data: IKaddexStakingPoolState } } = pactResponse;
+        const stakingTvlData: DailyTVLDto = {
+          id: new mongo.ObjectId(),
+          day: moment().hours(0).minutes(0).seconds(0).toDate(),
+          dayString: moment().format('YYYY-MM-DD'),
+          chain: chainId,
+          tokenFrom: 'kaddex.staking-pool-state',
+          tokenTo: null,
+          tokenFromTVL: this.getApiBalance(data['staked-kdx']),
+          tokenToTVL: null,
+        };
+        await this.connection
+          .model(TVL_COLLECTION_NAME, DailyTVLSchema, TVL_COLLECTION_NAME)
+          .create(stakingTvlData);
+      } catch (e) {
+        console.log(e);
+      }
+    }
   }
 
   /**
@@ -167,8 +226,8 @@ export class AppService {
               tokenToTVL: this.getApiBalance(token2),
             });
           } else if (statFounded.tokenFromTVL < this.getApiBalance(token1)) {
-            statFounded.tokenFromTVL += this.getApiBalance(token1);
-            statFounded.tokenToTVL += this.getApiBalance(token2);
+            statFounded.tokenFromTVL = this.getApiBalance(token1);
+            statFounded.tokenToTVL = this.getApiBalance(token2);
           }
         }
         // group by pair-chain, order by day, save all days greater then last
@@ -204,7 +263,7 @@ export class AppService {
             }
 
             await this.connection
-              .model(eventName, DailyTVLSchema, eventName)
+              .model(TVL_COLLECTION_NAME, DailyTVLSchema, TVL_COLLECTION_NAME)
               .create(ascDay);
             analyzingData = _.differenceBy(analyzingData, ascDay, (t) => {
               return t.id.toString();

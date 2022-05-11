@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
+export const TVL_COLLECTION_NAME = 'tvl';
+
 export type DailyTVLDocument = DailyTVL & Document;
 
 @Schema()

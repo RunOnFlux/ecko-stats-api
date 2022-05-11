@@ -66,7 +66,7 @@ export class DailyVolumesService {
     dateStart: Date,
     dateEnd: Date,
   ): Promise<any> {
-    return await this.connection
+    const groupedWeeklyData = await this.connection
       .collection(eventName)
       .aggregate([
         {
@@ -81,9 +81,12 @@ export class DailyVolumesService {
           $project: {
             tokenToVolume: 1,
             tokenFromVolume: 1,
+            startDay: '$day',
             week: { $toString: { $week: '$day' } },
             year: { $toString: { $year: '$day' } },
+            tokenFromNamespace: '$tokenFromNamespace',
             tokenFromName: '$tokenFromName',
+            tokenToNamespace: '$tokenToNamespace',
             tokenToName: '$tokenToName',
           },
         },
@@ -94,19 +97,35 @@ export class DailyVolumesService {
                 '$year',
                 '-W',
                 '$week',
-                '-',
+                '_',
                 '$tokenFromName',
+                ':',
                 '$tokenToName',
               ],
             },
-            // volumes: { $push: '$$ROOT' },
+            startDay: { $first: '$startDay' },
+            year: { $first: '$year' },
+            week: { $first: '$week' },
+            tokenFromNamespace: { $first: '$tokenFromNamespace' },
+            tokenFromName: { $first: '$tokenFromName' },
+            tokenToNamespace: { $first: '$tokenToNamespace' },
+            tokenToName: { $first: '$tokenToName' },
             tokenToVolume: { $sum: '$tokenToVolume' },
             tokenFromVolume: { $sum: '$tokenFromVolume' },
           },
         },
-        { $sort: { _id: 1 } },
+        { $sort: { startDay: 1 } },
       ])
+
       .toArray();
+    const groupedByKey = _.groupBy(
+      groupedWeeklyData,
+      (el) => el._id.split('_')[0],
+    );
+    return Object.keys(groupedByKey).map((weeklyGroupedKey) => ({
+      _id: weeklyGroupedKey,
+      volumes: groupedByKey[weeklyGroupedKey],
+    }));
   }
 
   async findAllAggregateByMonth(
@@ -114,7 +133,7 @@ export class DailyVolumesService {
     dateStart: Date,
     dateEnd: Date,
   ): Promise<any> {
-    return await this.connection
+    const groupedMonthlyData = await this.connection
       .collection(eventName)
       .aggregate([
         {
@@ -129,9 +148,12 @@ export class DailyVolumesService {
           $project: {
             tokenToVolume: 1,
             tokenFromVolume: 1,
+            startDay: '$day',
             month: { $toString: { $month: '$day' } },
             year: { $toString: { $year: '$day' } },
+            tokenFromNamespace: '$tokenFromNamespace',
             tokenFromName: '$tokenFromName',
+            tokenToNamespace: '$tokenToNamespace',
             tokenToName: '$tokenToName',
           },
         },
@@ -142,19 +164,34 @@ export class DailyVolumesService {
                 '$year',
                 '-',
                 '$month',
-                '-',
+                '_',
                 '$tokenFromName',
+                ':',
                 '$tokenToName',
               ],
             },
-            // volumes: { $push: '$$ROOT' },
+            startDay: { $last: '$startDay' },
+            year: { $first: '$year' },
+            month: { $first: '$month' },
+            tokenFromNamespace: { $first: '$tokenFromNamespace' },
+            tokenFromName: { $first: '$tokenFromName' },
+            tokenToNamespace: { $first: '$tokenToNamespace' },
+            tokenToName: { $first: '$tokenToName' },
             tokenToVolume: { $sum: '$tokenToVolume' },
             tokenFromVolume: { $sum: '$tokenFromVolume' },
           },
         },
-        { $sort: { _id: 1 } },
+        { $sort: { startDay: 1 } },
       ])
       .toArray();
+    const groupedByKey = _.groupBy(
+      groupedMonthlyData,
+      (el) => el._id.split('_')[0],
+    );
+    return Object.keys(groupedByKey).map((monthlyGroupedKey) => ({
+      _id: monthlyGroupedKey,
+      volumes: groupedByKey[monthlyGroupedKey],
+    }));
   }
 
   async create(

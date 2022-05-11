@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { VolumeDto } from './volume.dto';
 
-export class DailyVolumeDto extends VolumeDto {
+export class WeeklyVolumeDto extends VolumeDto {
   @ApiProperty()
-  day: Date;
+  startDay: Date;
 
   @ApiProperty()
-  dayString: string;
+  year: string;
 
   @ApiProperty()
-  chain: number;
+  week: string;
 }
