@@ -4,6 +4,7 @@ import { DailyTvlController } from './daily-tvl.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DailyTVL, DailyTVLSchema } from './schemas/daily-tvl.schema';
 import { HttpModule } from '@nestjs/axios';
+import { DailyTvlImporter } from './daily-tvl.importer';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { HttpModule } from '@nestjs/axios';
     ]),
     HttpModule,
   ],
-  providers: [DailyTvlService],
+  providers: [DailyTvlService, DailyTvlImporter],
   controllers: [DailyTvlController],
 })
 export class DailyTvlModule {}
