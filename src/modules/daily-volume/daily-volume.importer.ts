@@ -5,6 +5,7 @@ import { Command, Console } from 'nestjs-console';
 import { Connection } from 'mongoose';
 import * as moment from 'moment';
 import { DailyVolumesService } from './daily-volume.service';
+import { VOLUME_COMMAND_NAME } from './schemas/daily-volume.schema';
 
 @Console()
 export class DailyVolumeImporter {
@@ -29,7 +30,7 @@ export class DailyVolumeImporter {
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async dailyVolumeImport() {
     await this.dailyVolumesService.volumeImport(
-      'kswap.exchange.SWAP',
+      VOLUME_COMMAND_NAME,
       moment().subtract(1, 'days').toDate(),
       moment().subtract(1, 'days').toDate(),
     );

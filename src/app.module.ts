@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DailyVolumeModule } from './modules/daily-volume/daily-volume.module';
 import { DailyTvlModule } from './modules/daily-tvl/daily-tvl.module';
+import { TokenCandlesModule } from './modules/token-candles/token-candles.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DailyTvlModule } from './modules/daily-tvl/daily-tvl.module';
     HttpModule,
     DailyVolumeModule,
     DailyTvlModule,
+    TokenCandlesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

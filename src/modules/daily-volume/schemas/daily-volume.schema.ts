@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type DailyVolumeDocument = DailyVolume & Document;
+export const VOLUME_COMMAND_NAME = 'kswap.exchange.SWAP';
 
 @Schema()
 export class DailyVolume {
