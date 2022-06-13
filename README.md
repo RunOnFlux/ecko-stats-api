@@ -14,4 +14,7 @@ npm run console import:volume kswap.exchange.SWAP
 
 # seed tvl data
 npm run console import:tvl kswap.exchange.UPDATE
+
+# seed candles data
+npm run console import:candles
 ```
