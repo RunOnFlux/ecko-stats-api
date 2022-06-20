@@ -9,6 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DailyVolumeModule } from './modules/daily-volume/daily-volume.module';
 import { DailyTvlModule } from './modules/daily-tvl/daily-tvl.module';
 import { TokenCandlesModule } from './modules/token-candles/token-candles.module';
+import { KucoinModule } from './modules/kucoin/kucoin.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TokenCandlesModule } from './modules/token-candles/token-candles.module
     DailyVolumeModule,
     DailyTvlModule,
     TokenCandlesModule,
+    KucoinModule,
   ],
   controllers: [AppController],
   providers: [AppService],

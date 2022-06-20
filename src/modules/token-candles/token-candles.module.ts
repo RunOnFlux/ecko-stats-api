@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { TokenCandlesService } from './token-candles.service';
 import { TokenCandlesController } from './token-candles.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -12,6 +12,7 @@ import { TokenCandlesImporter } from './token-candles.importer';
       { name: TokenCandle.name, schema: TokenCandleSchema },
     ]),
     HttpModule,
+    CacheModule.register(),
   ],
   providers: [TokenCandlesService, TokenCandlesImporter],
   controllers: [TokenCandlesController],

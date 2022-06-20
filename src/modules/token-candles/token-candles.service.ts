@@ -1,4 +1,10 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  ConsoleLogger,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { HttpService } from '@nestjs/axios';
 import * as moment from 'moment';
@@ -19,6 +25,10 @@ import {
   IKSwapExchangeSWAP,
   IRefData,
 } from 'src/interfaces/kswap.exchange.SWAP.interface';
+import { KucoinService } from '../kucoin/kucoin.service';
+import { GetCandlesResponse } from '../kucoin/interfaces/kucoin.interfaces';
+
+export const KUCOIN_CANDLES_CACHE_PREFIX = 'kucoin-kda-usdt';
 
 @Injectable()
 export class TokenCandlesService {
@@ -28,7 +38,18 @@ export class TokenCandlesService {
     private tokenCandlesModel: Model<TokenCandleDocument>,
     @InjectConnection() private connection: Connection,
     private readonly httpService: HttpService,
-  ) {}
+    private readonly kucoinService: KucoinService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {
+    setTimeout(
+      () =>
+        this.tokenCandlesImport(
+          moment().subtract(10, 'days').toDate(),
+          moment().toDate(),
+        ),
+      4000,
+    );
+  }
 
   async findAll(
     pairName: string,
@@ -86,7 +107,34 @@ export class TokenCandlesService {
     }
   }
 
-  async tokenCandlesImport(dayStart?: Date, dayEnd?: Date): Promise<any> {
+  async getKdaUsdCandle(day: Date): Promise<GetCandlesResponse> {
+    const value: GetCandlesResponse = await this.cacheManager.get(
+      `${KUCOIN_CANDLES_CACHE_PREFIX}-${moment(day).format('YYYY-MM-DD')}`,
+    );
+    // let candle = null;
+    if (!value) {
+      const candles = await this.kucoinService.getCandles({
+        symbol: 'KDA-USDT',
+        startAt: moment(day).subtract(20, 'days').unix(),
+        endAt: moment(day).unix(),
+        type: '1day',
+      });
+      for (const c of candles) {
+        await this.cacheManager.set(
+          `${KUCOIN_CANDLES_CACHE_PREFIX}-${c.timeString}`,
+          c,
+          { ttl: 3600 },
+        );
+      }
+      return candles?.find(
+        (candle) => candle.timeString === moment(day).format('YYYY-MM-DD'),
+      );
+    } else {
+      return value;
+    }
+  }
+
+  async tokenCandlesImport(dayStart?: Date, dayEnd?: Date): Promise<void> {
     this.logger.log('CANDLES IMPORT START');
     const limit = 100;
     let offset = 0;
@@ -96,9 +144,8 @@ export class TokenCandlesService {
     const dayStartString =
       dayStart && moment(dayStart).utc().format('YYYY-MM-DD');
     const dayEndString = dayEnd && moment(dayEnd).utc().format('YYYY-MM-DD');
-
     let hasResult = true;
-    let lastDay: string = null;
+    let lastDay: string = moment(dayEnd).utc().format('YYYY-MM-DD');
     const hasDateRange = dayStartString && dayEndString;
 
     do {
@@ -136,6 +183,11 @@ export class TokenCandlesService {
               st.pairName === pairName
             );
           });
+
+          const kdaUsdCandle = await this.getKdaUsdCandle(
+            moment(blockTime).toDate(),
+          );
+          const kdaUsdPrice = kdaUsdCandle.close;
           if (!candleFounded) {
             this.logger.log(
               `Creating candle for [${pairName}] ${moment(blockTime)
@@ -144,27 +196,42 @@ export class TokenCandlesService {
                 .seconds(0)
                 .format('YYYY-MM-DD')}`,
             );
+            const kdaPrice = this.getKdaSwapPrice(stat);
+            const usdPrice = kdaPrice / kdaUsdPrice;
             processingCandles.push({
               id: new mongo.ObjectId(),
               day: moment(blockTime).hours(0).minutes(0).seconds(0).toDate(),
               dayString: moment(blockTime).format('YYYY-MM-DD'),
               chain,
               pairName,
-              open: this.getKdaSwapPrice(stat),
-              close: this.getKdaSwapPrice(stat), // save the price
-              high: this.getKdaSwapPrice(stat),
-              low: this.getKdaSwapPrice(stat),
+              price: {
+                open: kdaPrice,
+                close: kdaPrice, // save the price
+                high: kdaPrice,
+                low: kdaPrice,
+              },
+              usdPrice: {
+                open: usdPrice,
+                close: usdPrice,
+                high: usdPrice,
+                low: usdPrice,
+              },
+
               volume: this.getVolume(stat),
             } as any);
           } else {
             const candlePrice = this.getKdaSwapPrice(stat);
-            if (candlePrice > candleFounded.high) {
-              candleFounded.high = candlePrice;
+            const candlePriceUsd = this.getKdaSwapPrice(stat) * kdaUsdPrice;
+            if (candlePrice > candleFounded.price?.high) {
+              candleFounded.price.high = candlePrice;
+              candleFounded.usdPrice.high = candlePriceUsd;
             }
-            if (candlePrice < candleFounded.low) {
-              candleFounded.low = candlePrice;
+            if (candlePrice < candleFounded.price.low) {
+              candleFounded.price.low = candlePrice;
+              candleFounded.usdPrice.low = candlePriceUsd;
             }
-            candleFounded.open = candlePrice;
+            candleFounded.price.open = candlePrice;
+            candleFounded.usdPrice.open = candlePriceUsd;
             candleFounded.volume += this.getVolume(stat);
           }
         }
@@ -228,6 +295,12 @@ export class TokenCandlesService {
         // continue or try again?
         offset += limit;
       }
+      const hasD = !hasDateRange;
+      const ddd = hasDateRange && lastDay >= dayStartString;
+      const isContinuing =
+        hasResult &&
+        (!hasDateRange || (hasDateRange && lastDay >= dayStartString));
+      const test = '';
     } while (
       hasResult &&
       (!hasDateRange || (hasDateRange && lastDay >= dayStartString))

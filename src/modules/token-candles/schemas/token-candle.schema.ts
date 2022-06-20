@@ -3,6 +3,20 @@ import { Document } from 'mongoose';
 
 export type TokenCandleDocument = TokenCandle & Document;
 
+export class PriceEmbedded {
+  @Prop()
+  open: number;
+
+  @Prop()
+  close: number;
+
+  @Prop()
+  high: number;
+
+  @Prop()
+  low: number;
+}
+
 @Schema()
 export class TokenCandle {
   @Prop()
@@ -18,16 +32,10 @@ export class TokenCandle {
   pairName: string;
 
   @Prop()
-  open: number;
+  price: PriceEmbedded;
 
   @Prop()
-  close: number;
-
-  @Prop()
-  high: number;
-
-  @Prop()
-  low: number;
+  usdPrice: PriceEmbedded;
 
   @Prop()
   volume: number;
