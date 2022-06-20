@@ -40,16 +40,7 @@ export class TokenCandlesService {
     private readonly httpService: HttpService,
     private readonly kucoinService: KucoinService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {
-    setTimeout(
-      () =>
-        this.tokenCandlesImport(
-          moment().subtract(10, 'days').toDate(),
-          moment().toDate(),
-        ),
-      4000,
-    );
-  }
+  ) {}
 
   async findAll(
     pairName: string,

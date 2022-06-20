@@ -13,7 +13,7 @@ export class TokenCandlesController {
     type: [TokenCandleDto],
   })
   @ApiQuery({ name: 'currency', type: String, example: 'coin' })
-  @ApiQuery({ name: 'asset', type: String, example: 'flux.runonflux' })
+  @ApiQuery({ name: 'asset', type: String, example: 'runonflux.flux' })
   @ApiQuery({ name: 'dateStart', type: Date, description: 'YYYY-MM-DD' })
   @ApiQuery({ name: 'dateEnd', type: Date, description: 'YYYY-MM-DD' })
   async dailyVolume(
