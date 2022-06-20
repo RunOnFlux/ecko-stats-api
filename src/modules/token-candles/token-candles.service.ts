@@ -88,7 +88,7 @@ export class TokenCandlesService {
     const {
       params: [, , tokenFromQuantity, refDataFrom, tokenToQuantity, refDataTo],
     } = swapData;
-    if (isKdaCoin(refDataFrom)) {
+    if (!isKdaCoin(refDataFrom)) {
       return getApiBalance(tokenToQuantity) / getApiBalance(tokenFromQuantity);
     } else {
       return getApiBalance(tokenFromQuantity) / getApiBalance(tokenToQuantity);
@@ -197,7 +197,7 @@ export class TokenCandlesService {
                 .format('YYYY-MM-DD')}`,
             );
             const kdaPrice = this.getKdaSwapPrice(stat);
-            const usdPrice = kdaPrice / kdaUsdPrice;
+            const usdPrice = kdaPrice * kdaUsdPrice;
             processingCandles.push({
               id: new mongo.ObjectId(),
               day: moment(blockTime).hours(0).minutes(0).seconds(0).toDate(),
