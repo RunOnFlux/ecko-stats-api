@@ -23,7 +23,7 @@ export class TokenCandlesController {
     @Query('dateEnd') dateEnd: Date,
   ) {
     return await this.tokenCandlesService.findAll(
-      `${currency}/${asset}`,
+      `${asset}/${currency}`,
       dateStart,
       dateEnd,
     );

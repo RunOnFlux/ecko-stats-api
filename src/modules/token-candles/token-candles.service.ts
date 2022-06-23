@@ -88,9 +88,9 @@ export class TokenCandlesService {
 
   getPairName(refDataFrom: IRefData, refDataTo: IRefData): string {
     if (isKdaCoin(refDataFrom)) {
-      return `coin/${refDataTo.refName.namespace}.${refDataTo.refName.name}`;
+      return `${refDataTo.refName.namespace}.${refDataTo.refName.name}/coin`;
     } else if (isKdaCoin(refDataTo)) {
-      return `coin/${refDataFrom.refName.namespace}.${refDataFrom.refName.name}`;
+      return `${refDataFrom.refName.namespace}.${refDataFrom.refName.name}/coin`;
     } else {
       const nameFrom = `${refDataFrom.refName.namespace}.${refDataFrom.refName.name}`;
       const nameTo = `${refDataTo.refName.namespace}.${refDataTo.refName.name}`;
@@ -286,12 +286,6 @@ export class TokenCandlesService {
         // continue or try again?
         offset += limit;
       }
-      const hasD = !hasDateRange;
-      const ddd = hasDateRange && lastDay >= dayStartString;
-      const isContinuing =
-        hasResult &&
-        (!hasDateRange || (hasDateRange && lastDay >= dayStartString));
-      const test = '';
     } while (
       hasResult &&
       (!hasDateRange || (hasDateRange && lastDay >= dayStartString))
@@ -311,12 +305,12 @@ export class TokenCandlesService {
       ).format('YYYY/MM/DD')} - ${moment(dateEnd).format('YYYY/MM/DD')})`,
     );
     this.logger.log(` ${asset}/${currency}`);
-    const collectionName = `candles_ext__${asset}/${currency}`;
+    const collectionName = `candles__${asset}/${currency}`;
     const collection = this.connection.collection(collectionName);
-    const dayLimit = 10;
+    const dayLimit = 100;
     let startUnix = moment(dateStart).unix();
     let limitUnix = moment(dateStart).add(dayLimit, 'days').unix();
-    while (!limitUnix || limitUnix <= moment(dateEnd).unix()) {
+    do {
       const candles = await this.kucoinService.getCandles({
         symbol: `${asset}-${currency}`,
         startAt: startUnix,
@@ -326,7 +320,7 @@ export class TokenCandlesService {
       for (const c of candles) {
         const candle = {
           id: new mongo.ObjectId(),
-          day: moment(c.time).hours(0).minutes(0).seconds(0).toDate(),
+          day: moment(c.timeString).hours(0).minutes(0).seconds(0).toDate(),
           dayString: c.timeString,
           chain: null,
           pairName: `${asset}/${currency}`,
@@ -338,6 +332,7 @@ export class TokenCandlesService {
             low: c.low,
           },
         };
+        this.logger.log(`SAVE CANDLE ${c.timeString}`);
         const founded = await collection.findOneAndReplace(
           {
             pairName: `${asset}/${currency}`,
@@ -351,6 +346,7 @@ export class TokenCandlesService {
       }
       startUnix = limitUnix;
       limitUnix = moment.unix(limitUnix).add(dayLimit, 'days').unix();
-    }
+    } while (startUnix <= moment(dateEnd).unix());
+    this.logger.log('CANDLES IMPORT FINISH');
   }
 }
