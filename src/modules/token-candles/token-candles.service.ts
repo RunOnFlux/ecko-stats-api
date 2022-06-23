@@ -107,7 +107,7 @@ export class TokenCandlesService {
       const candles = await this.kucoinService.getCandles({
         symbol: 'KDA-USDT',
         startAt: moment(day).subtract(20, 'days').unix(),
-        endAt: moment(day).unix(),
+        endAt: moment(day).add(1, 'days').unix(),
         type: '1day',
       });
       for (const c of candles) {
@@ -178,7 +178,7 @@ export class TokenCandlesService {
           const kdaUsdCandle = await this.getKdaUsdCandle(
             moment(blockTime).toDate(),
           );
-          const kdaUsdPrice = kdaUsdCandle.close;
+          const kdaUsdPrice = kdaUsdCandle?.close ?? 0;
           if (!candleFounded) {
             this.logger.log(
               `Creating candle for [${pairName}] ${moment(blockTime)
