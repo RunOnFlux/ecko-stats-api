@@ -299,4 +299,58 @@ export class TokenCandlesService {
 
     this.logger.log('CANDLES IMPORT FINISH');
   }
+  async importExternalCandles(
+    asset: string,
+    currency: string,
+    dateStart: Date,
+    dateEnd: Date,
+  ) {
+    this.logger.log(
+      `START EXTERNAL CANDLES IMPORT FOR ${asset}/${currency} (${moment(
+        dateStart,
+      ).format('YYYY/MM/DD')} - ${moment(dateEnd).format('YYYY/MM/DD')})`,
+    );
+    this.logger.log(` ${asset}/${currency}`);
+    const collectionName = `candles_ext__${asset}/${currency}`;
+    const collection = this.connection.collection(collectionName);
+    const dayLimit = 10;
+    let startUnix = moment(dateStart).unix();
+    let limitUnix = moment(dateStart).add(dayLimit, 'days').unix();
+    while (!limitUnix || limitUnix <= moment(dateEnd).unix()) {
+      const candles = await this.kucoinService.getCandles({
+        symbol: `${asset}-${currency}`,
+        startAt: startUnix,
+        endAt: limitUnix,
+        type: '1day',
+      });
+      for (const c of candles) {
+        const candle = {
+          id: new mongo.ObjectId(),
+          day: moment(c.time).hours(0).minutes(0).seconds(0).toDate(),
+          dayString: c.timeString,
+          chain: null,
+          pairName: `${asset}/${currency}`,
+          volume: c.volume,
+          price: {
+            open: c.open,
+            close: c.close,
+            high: c.high,
+            low: c.low,
+          },
+        };
+        const founded = await collection.findOneAndReplace(
+          {
+            pairName: `${asset}/${currency}`,
+            dayString: c.timeString,
+          },
+          candle,
+        );
+        if (!founded.value) {
+          await collection.insertOne(candle);
+        }
+      }
+      startUnix = limitUnix;
+      limitUnix = moment.unix(limitUnix).add(dayLimit, 'days').unix();
+    }
+  }
 }

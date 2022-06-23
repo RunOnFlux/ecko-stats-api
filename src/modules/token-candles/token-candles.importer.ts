@@ -15,11 +15,28 @@ export class TokenCandlesImporter {
   @Command({
     command: 'import:candles',
   })
-  async candlesImportCommand() {
+  async importCandlesCommand() {
     await this.tokenCandlesService.tokenCandlesImport();
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Command({
+    command: 'import:external-candles <asset> <currency> <startDate> <endDate>',
+  })
+  async importExternalCandlesCommand(
+    asset: string,
+    currency: string,
+    startDate: string,
+    endDate: string,
+  ) {
+    await this.tokenCandlesService.importExternalCandles(
+      asset,
+      currency,
+      moment(startDate).toDate(),
+      moment(endDate).toDate(),
+    );
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async tokenCandlesImport() {
     await this.tokenCandlesService.tokenCandlesImport(
       moment().subtract(1, 'days').toDate(),
