@@ -1,5 +1,5 @@
 import { HttpModule } from '@nestjs/axios';
-import { Module } from '@nestjs/common';
+import { Module, CacheModule, CacheInterceptor } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConsoleModule } from 'nestjs-console';
@@ -10,12 +10,14 @@ import { DailyVolumeModule } from './modules/daily-volume/daily-volume.module';
 import { DailyTvlModule } from './modules/daily-tvl/daily-tvl.module';
 import { TokenCandlesModule } from './modules/token-candles/token-candles.module';
 import { KucoinModule } from './modules/kucoin/kucoin.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    CacheModule.register({ ttl: 60 * 10 }),
     ScheduleModule.forRoot(),
     ConsoleModule,
     MongooseModule.forRoot(process.env.MONGO_DB_URI),
@@ -26,6 +28,12 @@ import { KucoinModule } from './modules/kucoin/kucoin.module';
     KucoinModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
+  ],
 })
 export class AppModule {}

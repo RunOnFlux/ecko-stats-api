@@ -39,7 +39,17 @@ export class TokenCandlesImporter {
   @Cron(CronExpression.EVERY_10_MINUTES)
   async tokenCandlesImport() {
     await this.tokenCandlesService.tokenCandlesImport(
+      moment().subtract(3, 'days').toDate(),
       moment().subtract(1, 'days').toDate(),
+    );
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async kdaCandlesImport() {
+    await this.tokenCandlesService.importExternalCandles(
+      'KDA',
+      'USDT',
+      moment().subtract(3, 'days').toDate(),
       moment().subtract(1, 'days').toDate(),
     );
   }
