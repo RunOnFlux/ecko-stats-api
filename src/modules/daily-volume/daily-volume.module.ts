@@ -4,6 +4,7 @@ import { DailyVolumesService } from './daily-volume.service';
 import { DailyVolume, DailyVolumeSchema } from './schemas/daily-volume.schema';
 import { DailyVolumeController } from './daily-volume.controller';
 import { HttpModule } from '@nestjs/axios';
+import { DailyVolumeImporter } from './daily-volume.importer';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { HttpModule } from '@nestjs/axios';
     ]),
     HttpModule,
   ],
-  providers: [DailyVolumesService],
+  providers: [DailyVolumesService, DailyVolumeImporter],
   exports: [DailyVolumesService],
   controllers: [DailyVolumeController],
 })
