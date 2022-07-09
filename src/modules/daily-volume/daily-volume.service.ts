@@ -232,7 +232,7 @@ export class DailyVolumesService {
     let hasResult = true;
     let lastDay: string = null;
     const hasDateRange = dayStartString && dayEndString;
-
+    let failedAttempt = 0;
     do {
       try {
         const eventsData: any = await this.httpService
@@ -350,13 +350,25 @@ export class DailyVolumesService {
             });
           }
         }
+        failedAttempt = 0;
         offset += limit;
       } catch (err) {
         this.logger.error(err);
         this.logger.debug(statFounded);
         this.logger.debug({ limit, offset });
         // continue or try again?
-        offset += limit;
+        if (failedAttempt < 5) {
+          failedAttempt += 1;
+          // wait 10sec
+          this.logger.log(
+            `FAILED ATTEMPT = ${failedAttempt} - waiting for 10 sec`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 10000));
+        } else {
+          this.logger.log(`RESTORE FAILED ATTEMPT AND SKIP THIS PAGE`);
+          failedAttempt = 0;
+          offset += limit;
+        }
       }
     } while (
       hasResult &&
