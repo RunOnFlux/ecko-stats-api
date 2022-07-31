@@ -226,6 +226,8 @@ export class DailyVolumesService {
     let statFounded = null;
     let analyzingData: DailyVolumeDto[] = [];
 
+    const collection = this.connection.collection(eventName);
+
     const dayStartString = dayStart && moment(dayStart).format('YYYY-MM-DD');
     const dayEndString = dayEnd && moment(dayEnd).format('YYYY-MM-DD');
 
@@ -326,11 +328,6 @@ export class DailyVolumesService {
               ['desc'],
             );
             lastDay = ascDay.pop().dayString;
-            ascDay = ascDay.filter(
-              (dailyVol) =>
-                moment(dailyVol.day).format('YYYY-MM-DD') !=
-                moment().format('YYYY-MM-DD'),
-            );
             if (dayStart) {
               ascDay = ascDay.filter(
                 (dailyVol) => dailyVol.dayString >= dayStartString,
@@ -341,13 +338,34 @@ export class DailyVolumesService {
                 (dailyVol) => dailyVol.dayString <= dayEndString,
               );
             }
+            for (const dailyVolume of ascDay) {
+              const founded = await collection.findOneAndReplace(
+                {
+                  dayString: dailyVolume.dayString,
+                  chain: dailyVolume.chain,
+                  tokenFromNamespace: dailyVolume.tokenFromNamespace,
+                  tokenFromName: dailyVolume.tokenFromName,
+                  tokenToNamespace: dailyVolume.tokenToNamespace,
+                  tokenToName: dailyVolume.tokenToName,
+                },
+                dailyVolume,
+              );
+              if (!founded.value) {
+                await this.connection
+                  .model(eventName, DailyVolumeSchema, eventName)
+                  .create(dailyVolume);
+              } else {
+                this.logger.log(
+                  `FOUNDED VOLUME FOR ${dailyVolume.tokenFromNamespace}.${dailyVolume.tokenFromName}/${dailyVolume.tokenToNamespace}.${dailyVolume.tokenToName} [${dailyVolume.dayString}]`,
+                );
+              }
+            }
 
-            await this.connection
-              .model(eventName, DailyVolumeSchema, eventName)
-              .create(ascDay);
             analyzingData = _.differenceBy(analyzingData, ascDay, (t) => {
               return t.id.toString();
             });
+          } else {
+            lastDay = groupedByPair[key] && groupedByPair[key][0]?.dayString;
           }
         }
         failedAttempt = 0;
