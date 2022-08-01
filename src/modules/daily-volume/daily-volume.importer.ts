@@ -27,12 +27,12 @@ export class DailyVolumeImporter {
     await this.dailyVolumesService.volumeImport(eventName);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_30_MINUTES)
   async dailyVolumeImport() {
     await this.dailyVolumesService.volumeImport(
       VOLUME_COMMAND_NAME,
       moment().subtract(1, 'days').toDate(),
-      moment().subtract(1, 'days').toDate(),
+      moment().toDate(),
     );
   }
 }
