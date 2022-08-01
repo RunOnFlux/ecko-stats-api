@@ -30,7 +30,7 @@ export class DailyVolumeImporter {
   @Cron(CronExpression.EVERY_30_MINUTES)
   async dailyVolumeImport() {
     await this.dailyVolumesService.volumeImport(
-      VOLUME_COMMAND_NAME,
+      'kaddex.exchange.SWAP',
       moment().subtract(1, 'days').toDate(),
       moment().toDate(),
     );
