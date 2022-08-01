@@ -9,6 +9,7 @@ import {
   DailyVolume,
   DailyVolumeDocument,
   DailyVolumeSchema,
+  VOLUME_COMMAND_NAME,
 } from './schemas/daily-volume.schema';
 import { Console } from 'nestjs-console';
 import { HttpService } from '@nestjs/axios';
@@ -226,7 +227,7 @@ export class DailyVolumesService {
     let statFounded = null;
     let analyzingData: DailyVolumeDto[] = [];
 
-    const collection = this.connection.collection(eventName);
+    const collection = this.connection.collection(VOLUME_COMMAND_NAME);
 
     const dayStartString = dayStart && moment(dayStart).format('YYYY-MM-DD');
     const dayEndString = dayEnd && moment(dayEnd).format('YYYY-MM-DD');
@@ -352,7 +353,11 @@ export class DailyVolumesService {
               );
               if (!founded.value) {
                 await this.connection
-                  .model(eventName, DailyVolumeSchema, eventName)
+                  .model(
+                    VOLUME_COMMAND_NAME,
+                    DailyVolumeSchema,
+                    VOLUME_COMMAND_NAME,
+                  )
                   .create(dailyVolume);
               } else {
                 this.logger.log(
@@ -392,6 +397,28 @@ export class DailyVolumesService {
       hasResult &&
       (!hasDateRange || (hasDateRange && lastDay >= dayStartString))
     );
+    for (const dailyVolume of analyzingData) {
+      const founded = await collection.findOneAndReplace(
+        {
+          dayString: dailyVolume.dayString,
+          chain: dailyVolume.chain,
+          tokenFromNamespace: dailyVolume.tokenFromNamespace,
+          tokenFromName: dailyVolume.tokenFromName,
+          tokenToNamespace: dailyVolume.tokenToNamespace,
+          tokenToName: dailyVolume.tokenToName,
+        },
+        dailyVolume,
+      );
+      if (!founded.value) {
+        await this.connection
+          .model(VOLUME_COMMAND_NAME, DailyVolumeSchema, VOLUME_COMMAND_NAME)
+          .create(dailyVolume);
+      } else {
+        this.logger.log(
+          `FOUNDED VOLUME FOR ${dailyVolume.tokenFromNamespace}.${dailyVolume.tokenFromName}/${dailyVolume.tokenToNamespace}.${dailyVolume.tokenToName} [${dailyVolume.dayString}]`,
+        );
+      }
+    }
 
     this.logger.log('IMPORT TERMINATED FOR ' + eventName);
   }

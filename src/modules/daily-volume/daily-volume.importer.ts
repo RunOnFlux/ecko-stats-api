@@ -5,7 +5,6 @@ import { Command, Console } from 'nestjs-console';
 import { Connection } from 'mongoose';
 import * as moment from 'moment';
 import { DailyVolumesService } from './daily-volume.service';
-import { VOLUME_COMMAND_NAME } from './schemas/daily-volume.schema';
 
 @Console()
 export class DailyVolumeImporter {
@@ -28,6 +27,9 @@ export class DailyVolumeImporter {
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
+  @Command({
+    command: 'import:volume daily',
+  })
   async dailyVolumeImport() {
     await this.dailyVolumesService.volumeImport(
       'kaddex.exchange.SWAP',
