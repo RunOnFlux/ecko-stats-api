@@ -144,7 +144,7 @@ export class TokenCandlesService {
         const eventsData: any = await this.httpService
           .get(CHAINWEB_ESTATS_URL, {
             params: {
-              name: VOLUME_COMMAND_NAME,
+              name: 'kaddex.exchange.SWAP',
               limit,
               offset,
             },
@@ -276,6 +276,8 @@ export class TokenCandlesService {
                 return t.id.toString();
               },
             );
+          } else {
+            lastDay = groupedByPair[key] && groupedByPair[key][0]?.dayString;
           }
         }
         offset += limit;
@@ -290,9 +292,25 @@ export class TokenCandlesService {
       hasResult &&
       (!hasDateRange || (hasDateRange && lastDay >= dayStartString))
     );
+    for (const candleSave of processingCandles) {
+      const collectionName = `candles__${candleSave.pairName}`;
+      const collection = this.connection.collection(collectionName);
+      const founded = await collection.findOneAndReplace(
+        {
+          pairName: candleSave.pairName,
+          chain: candleSave.chain,
+          dayString: candleSave.dayString,
+        },
+        candleSave,
+      );
+      if (!founded.value) {
+        await collection.insertOne(candleSave);
+      }
+    }
 
     this.logger.log('CANDLES IMPORT FINISH');
   }
+
   async importExternalCandles(
     asset: string,
     currency: string,
