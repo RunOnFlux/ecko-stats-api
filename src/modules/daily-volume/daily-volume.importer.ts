@@ -26,6 +26,13 @@ export class DailyVolumeImporter {
     await this.dailyVolumesService.volumeImport(eventName);
   }
 
+  @Command({
+    command: 'update:volume <eventName>',
+  })
+  async volumeUpdateCommand(eventName: string) {
+    await this.dailyVolumesService.volumeImport(eventName);
+  }
+
   @Cron(CronExpression.EVERY_30_MINUTES)
   @Command({
     command: 'import:volume-daily',
