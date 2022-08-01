@@ -28,7 +28,7 @@ export class DailyVolumeImporter {
 
   @Cron(CronExpression.EVERY_30_MINUTES)
   @Command({
-    command: 'import:volume daily',
+    command: 'import:volume-daily',
   })
   async dailyVolumeImport() {
     await this.dailyVolumesService.volumeImport(
