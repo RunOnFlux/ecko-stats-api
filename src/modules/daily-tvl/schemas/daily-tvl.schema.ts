@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 
 export const TVL_COLLECTION_NAME = 'tvl';
 export const TVL_COMMAND_NAME = 'kswap.exchange.UPDATE';
+export const TVL_COMMAND_NAME_2 = 'kaddex.exchange.UPDATE';
 
 export type DailyTVLDocument = DailyTVL & Document;
 
