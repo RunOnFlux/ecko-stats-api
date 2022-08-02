@@ -54,6 +54,7 @@ export class DailyTvlService {
     const chains = Array.from(Array(20).keys());
     for (const chainId of chains) {
       try {
+        const url = `${process.env.CHAINWEB_NODE_URL}/chainweb/0.0/${networkId}/chain/${chainId}/pact`;
         const pactResponse = await pact.fetch.local(
           {
             pactCode: '(kaddex.staking.get-pool-state)',
@@ -66,13 +67,13 @@ export class DailyTvlService {
               600,
             ),
           },
-          `${process.env.CHAINWEB_NODE_URL}/chainweb/0.0/${networkId}/chain/${chainId}/pact`,
+          url,
         );
         const {
           result: { data },
         }: { result: { data: IKaddexStakingPoolState } } = pactResponse;
+        const collection = this.connection.collection(TVL_COLLECTION_NAME);
         const stakingTvlData: DailyTVLDto = {
-          id: new mongo.ObjectId(),
           day: moment().hours(0).minutes(0).seconds(0).toDate(),
           dayString: moment().format('YYYY-MM-DD'),
           chain: chainId,
@@ -81,9 +82,20 @@ export class DailyTvlService {
           tokenFromTVL: getApiBalance(data['staked-kdx']),
           tokenToTVL: null,
         };
-        await this.connection
-          .model(TVL_COLLECTION_NAME, DailyTVLSchema, TVL_COLLECTION_NAME)
-          .create(stakingTvlData);
+        const founded = await collection.findOneAndReplace(
+          {
+            dayString: moment().format('YYYY-MM-DD'),
+            chain: chainId,
+            tokenFrom: 'kaddex.staking-pool-state',
+            tokenTo: null,
+          },
+          stakingTvlData,
+        );
+        if (!founded.value) {
+          await this.connection
+            .model(TVL_COLLECTION_NAME, DailyTVLSchema, TVL_COLLECTION_NAME)
+            .create(stakingTvlData);
+        }
       } catch (e) {
         console.log(e);
       }
@@ -190,11 +202,6 @@ export class DailyTvlService {
               ['desc'],
             );
             lastDay = ascDay.pop().dayString;
-            ascDay = ascDay.filter(
-              (dailyVol) =>
-                moment(dailyVol.day).format('YYYY-MM-DD') !=
-                moment().format('YYYY-MM-DD'),
-            );
             if (dayStart) {
               ascDay = ascDay.filter(
                 (dailyTVL) => dailyTVL.dayString >= dayStartString,
@@ -205,13 +212,36 @@ export class DailyTvlService {
                 (dailyTVL) => dailyTVL.dayString <= dayEndString,
               );
             }
-
-            await this.connection
-              .model(TVL_COLLECTION_NAME, DailyTVLSchema, TVL_COLLECTION_NAME)
-              .create(ascDay);
+            const collection = this.connection.collection(TVL_COLLECTION_NAME);
+            for (const dailyTvl of ascDay) {
+              const founded = await collection.findOneAndReplace(
+                {
+                  dayString: dailyTvl.dayString,
+                  chain: dailyTvl.chain,
+                  tokenFrom: dailyTvl.tokenFrom,
+                  tokenTo: dailyTvl.tokenTo,
+                },
+                dailyTvl,
+              );
+              if (!founded?.value) {
+                await this.connection
+                  .model(
+                    TVL_COLLECTION_NAME,
+                    DailyTVLSchema,
+                    TVL_COLLECTION_NAME,
+                  )
+                  .create(dailyTvl);
+              } else {
+                this.logger.log(
+                  `FOUNDED VOLUME FOR ${dailyTvl.tokenFrom}/${dailyTvl.tokenTo} [${dailyTvl.dayString}]`,
+                );
+              }
+            }
             analyzingData = _.differenceBy(analyzingData, ascDay, (t) => {
               return t.id.toString();
             });
+          } else {
+            lastDay = groupedByPair[key] && groupedByPair[key][0]?.dayString;
           }
         }
         failedAttempt = 0;
