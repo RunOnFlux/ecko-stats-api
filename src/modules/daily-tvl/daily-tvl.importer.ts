@@ -7,7 +7,7 @@ import * as moment from 'moment';
 import { DailyTvlService } from './daily-tvl.service';
 import {
   TVL_COLLECTION_NAME,
-  TVL_COMMAND_NAME,
+  TVL_COMMAND_NAME_2,
 } from './schemas/daily-tvl.schema';
 
 @Console()
@@ -42,12 +42,22 @@ export class DailyTvlImporter {
     await this.dailyTvlService.tvlImport(eventName);
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Command({
+    command: 'update:tvl <eventName>',
+  })
+  async tvlUpdateCommand(eventName: string) {
+    await this.dailyTvlService.tvlImport(eventName);
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  @Command({
+    command: 'import:tvl-daily',
+  })
   async dailyTVLImport() {
     await this.dailyTvlService.tvlImport(
-      TVL_COMMAND_NAME,
+      TVL_COMMAND_NAME_2,
       moment().subtract(1, 'days').toDate(),
-      moment().subtract(1, 'days').toDate(),
+      moment().toDate(),
     );
     await this.dailyTvlService.dailyStakingTVL();
   }
