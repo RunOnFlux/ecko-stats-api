@@ -220,6 +220,7 @@ export class DailyVolumesService {
     eventName: string,
     dayStart?: Date,
     dayEnd?: Date,
+    saveUncompleted = false,
   ): Promise<any> {
     this.logger.log('START VOLUME IMPORT');
     const limit = 100;
@@ -397,26 +398,28 @@ export class DailyVolumesService {
       hasResult &&
       (!hasDateRange || (hasDateRange && lastDay >= dayStartString))
     );
-    for (const dailyVolume of analyzingData) {
-      const founded = await collection.findOneAndReplace(
-        {
-          dayString: dailyVolume.dayString,
-          chain: dailyVolume.chain,
-          tokenFromNamespace: dailyVolume.tokenFromNamespace,
-          tokenFromName: dailyVolume.tokenFromName,
-          tokenToNamespace: dailyVolume.tokenToNamespace,
-          tokenToName: dailyVolume.tokenToName,
-        },
-        dailyVolume,
-      );
-      if (!founded.value) {
-        await this.connection
-          .model(VOLUME_COMMAND_NAME, DailyVolumeSchema, VOLUME_COMMAND_NAME)
-          .create(dailyVolume);
-      } else {
-        this.logger.log(
-          `FOUNDED VOLUME FOR ${dailyVolume.tokenFromNamespace}.${dailyVolume.tokenFromName}/${dailyVolume.tokenToNamespace}.${dailyVolume.tokenToName} [${dailyVolume.dayString}]`,
+    if (saveUncompleted) {
+      for (const dailyVolume of analyzingData) {
+        const founded = await collection.findOneAndReplace(
+          {
+            dayString: dailyVolume.dayString,
+            chain: dailyVolume.chain,
+            tokenFromNamespace: dailyVolume.tokenFromNamespace,
+            tokenFromName: dailyVolume.tokenFromName,
+            tokenToNamespace: dailyVolume.tokenToNamespace,
+            tokenToName: dailyVolume.tokenToName,
+          },
+          dailyVolume,
         );
+        if (!founded.value) {
+          await this.connection
+            .model(VOLUME_COMMAND_NAME, DailyVolumeSchema, VOLUME_COMMAND_NAME)
+            .create(dailyVolume);
+        } else {
+          this.logger.log(
+            `FOUNDED VOLUME FOR ${dailyVolume.tokenFromNamespace}.${dailyVolume.tokenFromName}/${dailyVolume.tokenToNamespace}.${dailyVolume.tokenToName} [${dailyVolume.dayString}]`,
+          );
+        }
       }
     }
 
