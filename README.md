@@ -10,10 +10,20 @@ npm install
 npm run build
 
 # reseed volume data
-npm run console import:volume kswap.exchange.SWAP/kaddex.exchange.SWAP
+npm run console import:volume <eventName>
+
+npm run console import:volume kswap.exchange.SWAP
+npm run console import:volume kaddex.exchange.SWAP
 
 # update volume data
-npm run console update:volume kswap.exchange.SWAP/kaddex.exchange.SWAP
+npm run console update:volume <eventName> <saveUncompleted>
+npm run console update:volume kswap.exchange.SWAP 0
+npm run console update:volume kaddex.exchange.SWAP 0
+
+# seed daily volume data
+npm run console import:volume-daily <eventName> <saveUncompleted>
+npm run console import:volume-daily kswap.exchange.SWAP 0
+npm run console import:volume-daily kaddex.exchange.SWAP 1
 
 # seed tvl data
 npm run console import:tvl kswap.exchange.UPDATE
