@@ -27,21 +27,27 @@ export class DailyVolumeImporter {
   }
 
   @Command({
-    command: 'update:volume <eventName>',
+    command: 'update:volume <eventName> <saveUncompleted>',
   })
-  async volumeUpdateCommand(eventName: string) {
-    await this.dailyVolumesService.volumeImport(eventName);
+  async volumeUpdateCommand(eventName: string, saveUncompleted: string) {
+    await this.dailyVolumesService.volumeImport(
+      eventName,
+      null,
+      null,
+      saveUncompleted === '1',
+    );
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
   @Command({
-    command: 'import:volume-daily',
+    command: 'import:volume-daily <saveUncompleted>',
   })
-  async dailyVolumeImport() {
+  async dailyVolumeImport(saveUncompleted: string) {
     await this.dailyVolumesService.volumeImport(
       'kaddex.exchange.SWAP',
       moment().subtract(1, 'days').toDate(),
       moment().toDate(),
+      saveUncompleted === '1',
     );
   }
 }
