@@ -49,7 +49,7 @@ export class DailyTvlImporter {
     await this.dailyTvlService.tvlImport(eventName);
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  // @Cron(CronExpression.EVERY_HOUR)
   @Command({
     command: 'import:tvl-daily',
   })
