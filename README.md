@@ -23,4 +23,10 @@ npm run console import:candles
 
 # seed external candles data
 npm run console:dev import:external-candles KDA USDT 2021-06-01 2022-06-24
+
+# seed analytics data
+npm run console import:analytics-circulating-supply
+npm run console import:analytics-burned
+npm run console import:analytics-liquidity-mining
+npm run console import:analytics-dao-treasury
 ```
