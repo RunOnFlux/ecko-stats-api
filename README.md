@@ -29,4 +29,5 @@ npm run console import:analytics-circulating-supply
 npm run console import:analytics-burned
 npm run console import:analytics-liquidity-mining
 npm run console import:analytics-dao-treasury
+npm run console import:analytics-all
 ```
