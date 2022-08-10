@@ -2,7 +2,12 @@ import { HttpService } from '@nestjs/axios';
 import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, Model, mongo } from 'mongoose';
-import { CHAINWEB_ESTATS_URL, getApiBalance } from 'src/utils/chainweb.util';
+import {
+  CHAINWEB_ESTATS_URL,
+  getApiBalance,
+  getPairsTVL,
+  pactFetchLocal,
+} from 'src/utils/chainweb.util';
 import {
   DailyTVL,
   DailyTVLDocument,
@@ -11,7 +16,6 @@ import {
 } from './schemas/daily-tvl.schema';
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import * as pact from 'pact-lang-api';
 import { lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { IKaddexStakingPoolState } from 'src/interfaces/kaddex.staking.get-pool-state.interface';
@@ -50,24 +54,12 @@ export class DailyTvlService {
       .toArray();
   }
   async dailyStakingTVL() {
-    const networkId = process.env.CHAINWEB_NETWORK_ID;
     const chains = Array.from(Array(20).keys());
     for (const chainId of chains) {
       try {
-        const url = `${process.env.CHAINWEB_NODE_URL}/chainweb/0.0/${networkId}/chain/${chainId}/pact`;
-        const pactResponse = await pact.fetch.local(
-          {
-            pactCode: '(kaddex.staking.get-pool-state)',
-            meta: pact.lang.mkMeta(
-              '',
-              chainId.toString(),
-              0.0000001,
-              150000,
-              Math.round(new Date().getTime() / 1000) - 10,
-              600,
-            ),
-          },
-          url,
+        const pactResponse = await pactFetchLocal(
+          chainId,
+          '(kaddex.staking.get-pool-state)',
         );
         const {
           result: { data },
@@ -233,7 +225,7 @@ export class DailyTvlService {
                   .create(dailyTvl);
               } else {
                 this.logger.log(
-                  `FOUNDED VOLUME FOR ${dailyTvl.tokenFrom}/${dailyTvl.tokenTo} [${dailyTvl.dayString}]`,
+                  `OVERWRITING TVL DATA FOR ${dailyTvl.tokenFrom}/${dailyTvl.tokenTo} [${dailyTvl.dayString}]`,
                 );
               }
             }
@@ -268,5 +260,36 @@ export class DailyTvlService {
     );
 
     this.logger.log('IMPORT TERMINATED FOR ' + eventName);
+  }
+
+  async dailyTVLImport() {
+    const chains = Array.from(Array(20).keys());
+    for (const chainId of chains) {
+      try {
+        const pairsTVL = await getPairsTVL(chainId);
+        for (const pairTVL of pairsTVL) {
+          const tvlData: DailyTVLDto = {
+            ...pairTVL,
+            day: moment().hours(0).minutes(0).seconds(0).toDate(),
+            dayString: moment().format('YYYY-MM-DD'),
+            chain: chainId,
+          };
+          const founded = await this.dailyTVLModel.findOneAndReplace(
+            {
+              dayString: moment().format('YYYY-MM-DD'),
+              chain: chainId,
+              tokenFrom: pairTVL.tokenFrom,
+              tokenTo: pairTVL.tokenTo,
+            },
+            tvlData,
+          );
+          if (!founded?._id) {
+            await this.dailyTVLModel.create(tvlData);
+          }
+        }
+      } catch (err) {
+        this.logger.warn(`Error to retrieve TVL from chain ${chainId}`, err);
+      }
+    }
   }
 }

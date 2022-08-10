@@ -7,7 +7,7 @@ export const TVL_COMMAND_NAME_2 = 'kaddex.exchange.UPDATE';
 
 export type DailyTVLDocument = DailyTVL & Document;
 
-@Schema()
+@Schema({ collection: TVL_COLLECTION_NAME })
 export class DailyTVL {
   @Prop()
   day: Date;

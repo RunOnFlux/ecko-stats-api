@@ -5,10 +5,7 @@ import { Command, Console } from 'nestjs-console';
 import { Connection } from 'mongoose';
 import * as moment from 'moment';
 import { DailyTvlService } from './daily-tvl.service';
-import {
-  TVL_COLLECTION_NAME,
-  TVL_COMMAND_NAME_2,
-} from './schemas/daily-tvl.schema';
+import { TVL_COLLECTION_NAME } from './schemas/daily-tvl.schema';
 
 @Console()
 export class DailyTvlImporter {
@@ -49,16 +46,12 @@ export class DailyTvlImporter {
     await this.dailyTvlService.tvlImport(eventName);
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
   @Command({
     command: 'import:tvl-daily',
   })
   async dailyTVLImport() {
-    await this.dailyTvlService.tvlImport(
-      TVL_COMMAND_NAME_2,
-      moment().subtract(1, 'days').toDate(),
-      moment().toDate(),
-    );
-    await this.dailyTvlService.dailyStakingTVL();
+    await this.dailyTvlService.dailyTVLImport();
+    // await this.dailyTvlService.dailyStakingTVL();
   }
 }
