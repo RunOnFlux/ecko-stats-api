@@ -11,6 +11,7 @@ import { DailyTvlModule } from './modules/daily-tvl/daily-tvl.module';
 import { TokenCandlesModule } from './modules/token-candles/token-candles.module';
 import { KucoinModule } from './modules/kucoin/kucoin.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     DailyTvlModule,
     TokenCandlesModule,
     KucoinModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [
