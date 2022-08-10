@@ -1,5 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Query } from '@nestjs/common';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsDto } from './dto/analytics.dto';
 
@@ -13,7 +18,12 @@ export class AnalyticsController {
   @ApiOkResponse({
     type: AnalyticsDto,
   })
-  async getData() {
-    return await this.analyticsService.getData();
+  @ApiQuery({ name: 'dateStart', type: Date, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'dateEnd', type: Date, description: 'YYYY-MM-DD' })
+  async getData(
+    @Query('dateStart') dateStart: Date,
+    @Query('dateEnd') dateEnd: Date,
+  ) {
+    return await this.analyticsService.getData(dateStart, dateEnd);
   }
 }

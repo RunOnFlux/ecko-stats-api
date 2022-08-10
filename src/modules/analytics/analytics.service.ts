@@ -3,7 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as pact from 'pact-lang-api';
 import * as moment from 'moment';
-import { AnalyticsDto } from './dto/analytics.dto';
+import {
+  AnalyticsDto,
+  LiquidityProvidingPositionDto,
+} from './dto/analytics.dto';
 import { Analytics, AnalyticsDocument } from './schemas/analytics.schema';
 import { extractDecimal, extractTime } from 'src/utils/pact-data.utils';
 
@@ -31,7 +34,8 @@ export class AnalyticsService {
           pactCode: `(let* (
               (total-supply (kaddex.kdx.total-supply))
               (staking-data (map (kaddex.staking.get-stake-record) (keys kaddex.staking.stake-table)))
-             ){'total-supply:total-supply, 'staking-data:staking-data})`,
+              (staked-kdx (at 'staked-kdx (kaddex.staking.get-pool-state)))
+             ){'total-supply:total-supply, 'staking-data:staking-data, 'staked-kdx:staked-kdx})`,
           meta: pact.lang.mkMeta(
             '',
             this.CHAIN_ID.toString(),
@@ -60,31 +64,43 @@ export class AnalyticsService {
       });
 
       const totalSupply = extractDecimal(data['total-supply']);
-      const circulatingSupply = totalSupply - totalLockedAmount;
+      const totalStaked = extractDecimal(data['staked-kdx']);
 
-      const filter = { chain: Number(this.CHAIN_ID) };
+      const filter = {
+        chain: Number(this.CHAIN_ID),
+        dayString: moment().format('YYYY-MM-DD'),
+      };
+
       const update = {
-        $set: { circulatingSupply: circulatingSupply, lastUpdate: new Date() },
+        circulatingSupply: {
+          totalSupply: totalSupply,
+          lockedAmount: totalLockedAmount,
+          stakedAmount: totalStaked,
+        },
       };
 
       const founded = await this.analyticsModel.findOneAndUpdate(
         filter,
         update,
       );
-      if (!founded._id) {
+
+      if (!founded) {
         const analyticsData: AnalyticsDto = {
-          circulatingSupply: circulatingSupply,
+          day: moment().hours(0).minutes(0).seconds(0).toDate(),
+          dayString: moment().format('YYYY-MM-DD'),
+          circulatingSupply: {
+            totalSupply: totalSupply,
+            lockedAmount: totalLockedAmount,
+            stakedAmount: totalStaked,
+          },
           liquidityMining: 0,
-          burned: 0,
+          burn: { stakingBurn: 0, tokenBurn: 0 },
           chain: Number(this.CHAIN_ID),
-          daoTreasury: 0,
-          lastUpdate: new Date(),
+          daoTreasury: { amount: 0, lpPositions: [] },
+          communitySale: 0,
         };
         await this.analyticsModel.create(analyticsData);
       }
-      this.logger.log(
-        `Circulating supply data -> total-supply: ${totalSupply} | total-amount-locked: ${totalLockedAmount} | circulating-supply: ${circulatingSupply}`,
-      );
       this.logger.log('ANALYTICS IMPORT CIRCULATING SUPPLY  END');
     } catch (error) {
       this.logger.error(error);
@@ -96,7 +112,12 @@ export class AnalyticsService {
     try {
       const pactResponse = await pact.fetch.local(
         {
-          pactCode: `(fold (+) 0.0 (map (lambda (p) (at 'total-burned (kaddex.kdx.get-raw-supply p))) (kaddex.kdx.get-purpose-list)))`,
+          pactCode: `
+          (let* (
+            (burned (fold (+) 0.0 (map (lambda (p) (at 'total-burned (kaddex.kdx.get-raw-supply p))) (kaddex.kdx.get-purpose-list))))
+            (staking-burnt (at 'burnt-kdx (kaddex.staking.get-pool-state)))
+           ){'burned:burned, 'staking-burnt:staking-burnt})
+          `,
           meta: pact.lang.mkMeta(
             '',
             this.CHAIN_ID.toString(),
@@ -112,29 +133,41 @@ export class AnalyticsService {
         result: { data },
       }: { result: { data: any } } = pactResponse;
 
-      const totalBurned = extractDecimal(data);
-
-      const filter = { chain: Number(this.CHAIN_ID) };
+      const filter = {
+        chain: Number(this.CHAIN_ID),
+        dayString: moment().format('YYYY-MM-DD'),
+      };
       const update = {
-        $set: { burned: totalBurned, lastUpdate: new Date() },
+        burn: {
+          tokenBurn: extractDecimal(data['burned']),
+          stakingBurn: extractDecimal(data['staking-burnt']),
+        },
       };
 
       const founded = await this.analyticsModel.findOneAndUpdate(
         filter,
         update,
       );
-      if (!founded._id) {
+      if (!founded) {
         const analyticsData: AnalyticsDto = {
-          circulatingSupply: 0,
+          day: moment().hours(0).minutes(0).seconds(0).toDate(),
+          dayString: moment().format('YYYY-MM-DD'),
+          circulatingSupply: {
+            totalSupply: 0,
+            lockedAmount: 0,
+            stakedAmount: 0,
+          },
           liquidityMining: 0,
-          burned: totalBurned,
+          burn: {
+            tokenBurn: extractDecimal(data['burned']),
+            stakingBurn: extractDecimal(data['staking-burnt']),
+          },
           chain: Number(this.CHAIN_ID),
-          daoTreasury: 0,
-          lastUpdate: new Date(),
+          daoTreasury: { amount: 0, lpPositions: [] },
+          communitySale: 0,
         };
         await this.analyticsModel.create(analyticsData);
       }
-      this.logger.log(`Burned data -> total-burned: ${totalBurned}`);
       this.logger.log('ANALYTICS IMPORT BURNED END');
     } catch (error) {
       this.logger.error(error);
@@ -164,29 +197,36 @@ export class AnalyticsService {
 
       const totalLiquidityMining = extractDecimal(data);
 
-      const filter = { chain: Number(this.CHAIN_ID) };
+      const filter = {
+        chain: Number(this.CHAIN_ID),
+        dayString: moment().format('YYYY-MM-DD'),
+      };
+
       const update = {
-        $set: { liquidityMining: totalLiquidityMining, lastUpdate: new Date() },
+        liquidityMining: totalLiquidityMining,
       };
 
       const founded = await this.analyticsModel.findOneAndUpdate(
         filter,
         update,
       );
-      if (!founded._id) {
+      if (!founded) {
         const analyticsData: AnalyticsDto = {
-          circulatingSupply: 0,
+          day: moment().hours(0).minutes(0).seconds(0).toDate(),
+          dayString: moment().format('YYYY-MM-DD'),
+          circulatingSupply: {
+            lockedAmount: 0,
+            stakedAmount: 0,
+            totalSupply: 0,
+          },
           liquidityMining: totalLiquidityMining,
-          burned: 0,
+          burn: { tokenBurn: 0, stakingBurn: 0 },
           chain: Number(this.CHAIN_ID),
-          daoTreasury: 0,
-          lastUpdate: new Date(),
+          daoTreasury: { amount: 0, lpPositions: [] },
+          communitySale: 0,
         };
         await this.analyticsModel.create(analyticsData);
       }
-      this.logger.log(
-        `Liquidity Mining data -> total-liquidity-mining: ${totalLiquidityMining}`,
-      );
       this.logger.log('ANALYTICS IMPORT LIQUIDITY MINING END');
     } catch (error) {
       this.logger.error(error);
@@ -205,7 +245,10 @@ export class AnalyticsService {
             (account-balance (kaddex.kdx.get-balance ${JSON.stringify(
               this.DAO_ACCOUNT,
             )}))
-          ){'max-cap:max-cap, 'dao-treasury:dao-treasury, 'account-balance:account-balance})
+            (lp-position (kaddex.wrapper.get-user-position-stats coin kaddex.kdx ${JSON.stringify(
+              this.DAO_ACCOUNT,
+            )}))
+          ){'max-cap:max-cap, 'dao-treasury:dao-treasury, 'account-balance:account-balance, 'lp-position:lp-position})
           `,
           meta: pact.lang.mkMeta(
             '',
@@ -222,40 +265,131 @@ export class AnalyticsService {
         result: { data },
       }: { result: { data: any } } = pactResponse;
 
-      const daoTreasury =
+      const daoAmount =
         extractDecimal(data['max-cap']) -
         extractDecimal(data['dao-treasury']['total-burned']) +
         (extractDecimal(data['account-balance']) -
           extractDecimal(data['dao-treasury']['total-minted']));
 
-      const filter = { chain: Number(this.CHAIN_ID) };
+      const lpPositions: LiquidityProvidingPositionDto[] = [
+        {
+          tokenAIdentifier: 'coin',
+          tokenBIdentifier: 'kaddex.kdx',
+          amountTokenA: extractDecimal(data['lp-position']['totalA']),
+          amountTokenB: extractDecimal(data['lp-position']['totalB']),
+          poolShare: extractDecimal(data['lp-position']['user-pool-share']),
+        },
+      ];
+
+      const filter = {
+        chain: Number(this.CHAIN_ID),
+        dayString: moment().format('YYYY-MM-DD'),
+      };
       const update = {
-        $set: { daoTreasury: daoTreasury, lastUpdate: new Date() },
+        daoTreasury: { amount: daoAmount, lpPositions: lpPositions },
       };
 
       const founded = await this.analyticsModel.findOneAndUpdate(
         filter,
         update,
       );
-      if (!founded._id) {
+      if (!founded) {
         const analyticsData: AnalyticsDto = {
-          circulatingSupply: 0,
+          day: moment().hours(0).minutes(0).seconds(0).toDate(),
+          dayString: moment().format('YYYY-MM-DD'),
+          circulatingSupply: {
+            totalSupply: 0,
+            lockedAmount: 0,
+            stakedAmount: 0,
+          },
           liquidityMining: 0,
-          burned: 0,
+          burn: { tokenBurn: 0, stakingBurn: 0 },
           chain: Number(this.CHAIN_ID),
-          daoTreasury: daoTreasury,
-          lastUpdate: new Date(),
+          daoTreasury: { amount: daoAmount, lpPositions: lpPositions },
+          communitySale: 0,
         };
         await this.analyticsModel.create(analyticsData);
       }
-      this.logger.log(`DAO Treasury data -> daoTreasury: ${daoTreasury}`);
       this.logger.log('ANALYTICS IMPORT DAO TREASURY END');
     } catch (error) {
       this.logger.error(error);
     }
   }
 
-  async getData(): Promise<any> {
-    return await this.analyticsModel.findOne().exec();
+  async importCommunitySale() {
+    this.logger.log('ANALYTICS IMPORT COMMUNITY SALE START');
+    try {
+      const pactResponse = await pact.fetch.local(
+        {
+          pactCode: `
+          (let (
+            (now (add-time (at 'block-time (chain-data)) (days -181))))
+              (fold (+) 0.0
+                (map (at 'amountKdx)
+                  (filter (lambda (l) (> now (at 'timestamp l)))
+                    (kaddex.public-sale.read-all-reservations)))))`,
+          meta: pact.lang.mkMeta(
+            '',
+            '0',
+            0.0000001,
+            160000,
+            Math.round(new Date().getTime() / 1000) - 10,
+            600,
+          ),
+        },
+        `${this.BASE_URL}/chainweb/0.0/${this.NETWORK_ID}/chain/0/pact`,
+      );
+      const {
+        result: { data },
+      }: { result: { data: any } } = pactResponse;
+
+      const totalCommunitySale = extractDecimal(data);
+
+      const filter = {
+        chain: Number(this.CHAIN_ID),
+        dayString: moment().format('YYYY-MM-DD'),
+      };
+
+      const update = {
+        communitySale: totalCommunitySale,
+      };
+
+      const founded = await this.analyticsModel.findOneAndUpdate(
+        filter,
+        update,
+      );
+      if (!founded) {
+        const analyticsData: AnalyticsDto = {
+          day: moment().hours(0).minutes(0).seconds(0).toDate(),
+          dayString: moment().format('YYYY-MM-DD'),
+          circulatingSupply: {
+            lockedAmount: 0,
+            stakedAmount: 0,
+            totalSupply: 0,
+          },
+          liquidityMining: 0,
+          burn: { tokenBurn: 0, stakingBurn: 0 },
+          chain: Number(this.CHAIN_ID),
+          daoTreasury: { amount: 0, lpPositions: [] },
+          communitySale: totalCommunitySale,
+        };
+        await this.analyticsModel.create(analyticsData);
+      }
+      this.logger.log('ANALYTICS IMPORT COMMUNITY SALE END');
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async getData(dateStart: Date, dateEnd: Date): Promise<any> {
+    return await this.analyticsModel
+      .find({
+        dayString: {
+          $gte: dateStart,
+          $lte: dateEnd,
+        },
+      })
+      .sort([['dayString', 'asc']])
+      .exec();
   }
 }

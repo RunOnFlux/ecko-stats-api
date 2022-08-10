@@ -11,7 +11,7 @@ export class AnalyticsImporter {
   private readonly logger = new ConsoleLogger(AnalyticsImporter.name);
   constructor(private readonly analyticsService: AnalyticsService) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1PM)
   @Command({
     command: 'import:analytics-circulating-supply',
   })
@@ -19,7 +19,7 @@ export class AnalyticsImporter {
     await this.analyticsService.importCirculatingSupply();
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1PM)
   @Command({
     command: 'import:analytics-burned',
   })
@@ -27,7 +27,6 @@ export class AnalyticsImporter {
     await this.analyticsService.importBurned();
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @Command({
     command: 'import:analytics-liquidity-mining',
   })
@@ -35,11 +34,29 @@ export class AnalyticsImporter {
     await this.analyticsService.importLiquidityMining();
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
   @Command({
     command: 'import:analytics-dao-treasury',
   })
   async analyticsImportDaoTreasury() {
     await this.analyticsService.importDaoTreasury();
+  }
+
+  @Command({
+    command: 'import:analytics-community-sale',
+  })
+  async analyticsImportCommunitySale() {
+    await this.analyticsService.importCommunitySale();
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Command({
+    command: 'import:analytics-all',
+  })
+  async analyticsImportAll() {
+    await this.analyticsService.importCirculatingSupply();
+    await this.analyticsService.importBurned();
+    await this.analyticsService.importLiquidityMining();
+    await this.analyticsService.importDaoTreasury();
+    await this.analyticsService.importCommunitySale();
   }
 }
