@@ -5,6 +5,9 @@ import * as pact from 'pact-lang-api';
 import * as moment from 'moment';
 import {
   AnalyticsDto,
+  BurnDto,
+  CirculatingSupplyDto,
+  DaoTreasuryDto,
   LiquidityProvidingPositionDto,
 } from './dto/analytics.dto';
 import { Analytics, AnalyticsDocument } from './schemas/analytics.schema';
@@ -51,6 +54,26 @@ export class AnalyticsService {
         result: { data },
       }: { result: { data: any } } = pactResponse;
 
+      const vaultingPactResponse = await pact.fetch.local(
+        {
+          pactCode: `(let (
+                      (now (at 'block-time (chain-data))))
+                        (fold (+) 0.0
+                          (map (at 'kdx-locked)
+                            (filter (lambda (l) (> now (at 'lockup-end-time l)))
+                              (kaddex.time-lock.read-all-lockups)))))`,
+          meta: pact.lang.mkMeta(
+            '',
+            '0',
+            0.0000001,
+            150000,
+            Math.round(new Date().getTime() / 1000) - 10,
+            600,
+          ),
+        },
+        `${this.BASE_URL}/chainweb/0.0/${this.NETWORK_ID}/chain/0/pact`,
+      );
+
       let totalLockedAmount = 0;
 
       data['staking-data'].map((item) => {
@@ -65,18 +88,22 @@ export class AnalyticsService {
 
       const totalSupply = extractDecimal(data['total-supply']);
       const totalStaked = extractDecimal(data['staked-kdx']);
+      const totalVaulted = extractDecimal(vaultingPactResponse?.result?.data);
 
       const filter = {
         chain: Number(this.CHAIN_ID),
         dayString: moment().format('YYYY-MM-DD'),
       };
 
+      const circulatingSupplyToUpdate: CirculatingSupplyDto = {
+        totalSupply: totalSupply,
+        lockedAmount: totalLockedAmount,
+        stakedAmount: totalStaked,
+        vaultedAmount: totalVaulted,
+      };
+
       const update = {
-        circulatingSupply: {
-          totalSupply: totalSupply,
-          lockedAmount: totalLockedAmount,
-          stakedAmount: totalStaked,
-        },
+        circulatingSupply: circulatingSupplyToUpdate,
       };
 
       const founded = await this.analyticsModel.findOneAndUpdate(
@@ -92,6 +119,7 @@ export class AnalyticsService {
             totalSupply: totalSupply,
             lockedAmount: totalLockedAmount,
             stakedAmount: totalStaked,
+            vaultedAmount: totalVaulted,
           },
           liquidityMining: 0,
           burn: { stakingBurn: 0, tokenBurn: 0 },
@@ -137,11 +165,13 @@ export class AnalyticsService {
         chain: Number(this.CHAIN_ID),
         dayString: moment().format('YYYY-MM-DD'),
       };
+
+      const burnToUpdate: BurnDto = {
+        tokenBurn: extractDecimal(data['burned']),
+        stakingBurn: extractDecimal(data['staking-burnt']),
+      };
       const update = {
-        burn: {
-          tokenBurn: extractDecimal(data['burned']),
-          stakingBurn: extractDecimal(data['staking-burnt']),
-        },
+        burn: burnToUpdate,
       };
 
       const founded = await this.analyticsModel.findOneAndUpdate(
@@ -156,6 +186,7 @@ export class AnalyticsService {
             totalSupply: 0,
             lockedAmount: 0,
             stakedAmount: 0,
+            vaultedAmount: 0,
           },
           liquidityMining: 0,
           burn: {
@@ -218,6 +249,7 @@ export class AnalyticsService {
             lockedAmount: 0,
             stakedAmount: 0,
             totalSupply: 0,
+            vaultedAmount: 0,
           },
           liquidityMining: totalLiquidityMining,
           burn: { tokenBurn: 0, stakingBurn: 0 },
@@ -281,12 +313,18 @@ export class AnalyticsService {
         },
       ];
 
+      const daoTreasuryToUpdate: DaoTreasuryDto = {
+        amount: daoAmount,
+        lpPositions: lpPositions,
+      };
+
       const filter = {
         chain: Number(this.CHAIN_ID),
         dayString: moment().format('YYYY-MM-DD'),
       };
+
       const update = {
-        daoTreasury: { amount: daoAmount, lpPositions: lpPositions },
+        daoTreasury: daoTreasuryToUpdate,
       };
 
       const founded = await this.analyticsModel.findOneAndUpdate(
@@ -301,6 +339,7 @@ export class AnalyticsService {
             totalSupply: 0,
             lockedAmount: 0,
             stakedAmount: 0,
+            vaultedAmount: 0,
           },
           liquidityMining: 0,
           burn: { tokenBurn: 0, stakingBurn: 0 },
@@ -366,6 +405,7 @@ export class AnalyticsService {
             lockedAmount: 0,
             stakedAmount: 0,
             totalSupply: 0,
+            vaultedAmount: 0,
           },
           liquidityMining: 0,
           burn: { tokenBurn: 0, stakingBurn: 0 },
