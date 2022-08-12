@@ -14,6 +14,9 @@ export class CirculatingSupply {
 
   @Prop()
   stakedAmount: number;
+
+  @Prop()
+  vaultedAmount: number;
 }
 
 export class Burn {

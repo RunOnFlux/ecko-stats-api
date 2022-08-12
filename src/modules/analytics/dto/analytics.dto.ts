@@ -9,6 +9,9 @@ export class CirculatingSupplyDto {
 
   @ApiProperty()
   stakedAmount: number;
+
+  @ApiProperty()
+  vaultedAmount: number;
 }
 
 export class BurnDto {
