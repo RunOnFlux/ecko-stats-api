@@ -61,7 +61,7 @@ export class AnalyticsService {
                       (now (at 'block-time (chain-data))))
                         (fold (+) 0.0
                           (map (at 'kdx-locked)
-                            (filter (lambda (l) (> now (at 'lockup-end-time l)))
+                            (filter (lambda (l) (< now (at 'lockup-end-time l)))
                               (kaddex.time-lock.read-all-lockups)))))`,
           meta: pact.lang.mkMeta(
             '',
