@@ -76,4 +76,15 @@ export const PAIR_TOKENS = {
       code: 'kdlaunch.kdswap-token',
     },
   },
+  'coin:free.kapybara-token': {
+    name: 'coin:free.kapybara-token',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'KAPY',
+      code: 'free.kapybara-token',
+    },
+  },
 };
