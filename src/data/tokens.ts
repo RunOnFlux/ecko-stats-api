@@ -76,6 +76,17 @@ export const PAIR_TOKENS = {
       code: 'kdlaunch.kdswap-token',
     },
   },
+  'coin:free.kishu-ken': {
+    name: 'coin:free.kishu-ken',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'KISHK',
+      code: 'free.kishu-ken',
+    },
+  },
   'coin:free.kapybara-token': {
     name: 'coin:free.kapybara-token',
     token0: {
@@ -86,5 +97,48 @@ export const PAIR_TOKENS = {
       name: 'KAPY',
       code: 'free.kapybara-token',
     },
+  },
+};
+
+export const TOKENS = {
+  coin: {
+    name: 'KDA',
+    code: 'coin',
+  },
+  'kaddex.kdx': {
+    name: 'KDX',
+    code: 'kaddex.kdx',
+  },
+  'runonflux.flux': {
+    name: 'FLUX',
+    code: 'runonflux.flux',
+  },
+  'hypercent.prod-hype-coin': {
+    name: 'HYPE',
+    code: 'hypercent.prod-hype-coin',
+  },
+  'mok.token': {
+    name: 'MOK',
+    code: 'mok.token',
+  },
+  'lago.kwUSDC': {
+    name: 'kwUSDC',
+    code: 'lago.kwUSDC',
+  },
+  'kdlaunch.token': {
+    name: 'KDL',
+    code: 'kdlaunch.token',
+  },
+  'kdlaunch.kdswap-token': {
+    name: 'KDS',
+    code: 'kdlaunch.kdswap-token',
+  },
+  'free.kishu-ken': {
+    name: 'KISHK',
+    code: 'free.kishu-ken',
+  },
+  'free.kapybara-token': {
+    name: 'KAPY',
+    code: 'free.kapybara-token',
   },
 };
