@@ -12,6 +12,7 @@ import { TokenCandlesModule } from './modules/token-candles/token-candles.module
 import { KucoinModule } from './modules/kucoin/kucoin.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { DexDataModule } from './modules/dex-data/dex-data.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     TokenCandlesModule,
     KucoinModule,
     AnalyticsModule,
+    DexDataModule,
   ],
   controllers: [AppController],
   providers: [
