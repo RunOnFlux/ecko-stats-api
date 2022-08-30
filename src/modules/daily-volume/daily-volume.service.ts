@@ -47,8 +47,8 @@ export class DailyVolumesService {
 
   async findAllAggregateByDay(
     eventName: string,
-    dateStart: Date,
-    dateEnd: Date,
+    dateStart: Date | string,
+    dateEnd: Date | string,
   ): Promise<any> {
     return await this.connection
       .collection(eventName)
