@@ -98,6 +98,17 @@ export const PAIR_TOKENS = {
       code: 'free.kapybara-token',
     },
   },
+  'coin:free.jodie-token': {
+    name: 'coin:free.jodie-token',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'JDE',
+      code: 'free.jodie-token',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -150,5 +161,10 @@ export const TOKENS = {
     name: 'KAPY',
     code: 'free.kapybara-token',
     extendedName: 'Kapy',
+  },
+  'free.jodie-token': {
+    name: 'JDE',
+    code: 'free.jodie-token',
+    extendedName: 'Jodie',
   },
 };
