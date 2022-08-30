@@ -104,41 +104,51 @@ export const TOKENS = {
   coin: {
     name: 'KDA',
     code: 'coin',
+    extendedName: 'Kadena Coin',
   },
   'kaddex.kdx': {
     name: 'KDX',
     code: 'kaddex.kdx',
+    extendedName: 'Kaddex',
   },
   'runonflux.flux': {
     name: 'FLUX',
     code: 'runonflux.flux',
+    extendedName: 'Flux',
   },
   'hypercent.prod-hype-coin': {
     name: 'HYPE',
     code: 'hypercent.prod-hype-coin',
+    extendedName: 'Hype',
   },
   'mok.token': {
     name: 'MOK',
     code: 'mok.token',
+    extendedName: 'Mok',
   },
   'lago.kwUSDC': {
     name: 'kwUSDC',
     code: 'lago.kwUSDC',
+    extendedName: 'Wrapped USDC',
   },
   'kdlaunch.token': {
     name: 'KDL',
     code: 'kdlaunch.token',
+    extendedName: 'KDLaunch',
   },
   'kdlaunch.kdswap-token': {
     name: 'KDS',
     code: 'kdlaunch.kdswap-token',
+    extendedName: 'KDSwap',
   },
   'free.kishu-ken': {
     name: 'KISHK',
     code: 'free.kishu-ken',
+    extendedName: 'Kishu Ken',
   },
   'free.kapybara-token': {
     name: 'KAPY',
     code: 'free.kapybara-token',
+    extendedName: 'Kapy',
   },
 };

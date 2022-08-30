@@ -3,6 +3,11 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as moment from 'moment';
 import { DailyVolumesService } from '../daily-volume/daily-volume.service';
 import { DexDataService } from './dex-data.service';
+import {
+  CMMTickerDto,
+  CMMTickerDtoInterface,
+  CMMTickerResponseDto,
+} from './dto/CMMTicker.dto';
 import { PairDto } from './dto/pair.dto';
 import { TickerDto } from './dto/ticker.dto';
 
@@ -38,7 +43,28 @@ export class DexDataController {
     let result: TickerDto[] = [];
 
     if (dailyVolumes && dailyVolumes.length) {
-      result = this.dexDataService.getTickers(dailyVolumes);
+      result = this.dexDataService.getCGTickers(dailyVolumes);
+    }
+
+    return result;
+  }
+
+  @Get('cmm-tickers')
+  @ApiOperation({ summary: `Get CMM tickers data` })
+  @ApiOkResponse({
+    type: CMMTickerResponseDto,
+  })
+  async getCMMTickers() {
+    const dailyVolumes = await this.dailyVolumeService.findAllAggregateByDay(
+      'kswap.exchange.SWAP',
+      moment().format('YYYY-MM-DD'),
+      moment().format('YYYY-MM-DD'),
+    );
+
+    let result: CMMTickerResponseDto;
+
+    if (dailyVolumes && dailyVolumes.length) {
+      result = this.dexDataService.getCMMTickers(dailyVolumes);
     }
 
     return result;

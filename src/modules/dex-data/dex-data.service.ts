@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import * as pact from 'pact-lang-api';
 import { PAIR_TOKENS, TOKENS } from 'src/data/tokens';
 import { extractDecimal } from 'src/utils/pact-data.utils';
+import { CMMTickerResponseDto } from './dto/CMMTicker.dto';
 import { PairDto } from './dto/pair.dto';
 import { TickerDto } from './dto/ticker.dto';
 
@@ -26,8 +27,8 @@ export class DexDataService {
     return result;
   }
 
-  getTickers(dailyVolumes: any): TickerDto[] {
-    const result: TickerDto[] = [];
+  private computeTickersPairsData(dailyVolumes: any): CMMTickerResponseDto {
+    const result = new CMMTickerResponseDto();
     const pairs = this.getPairs();
     pairs.forEach((x) => {
       const pairTokensCode = x.pool_id.split(':');
@@ -98,18 +99,42 @@ export class DexDataService {
         }
       });
 
-      result.push({
-        ticker_id: `${baseTokenData.name}_${targetTokenData.name}`,
-        base_currency: baseTokenData.name,
-        target_currency: targetTokenData.name,
+      result[`${baseTokenData.code}_${targetTokenData.code}`] = {
+        base_id: baseTokenData.code,
+        base_name: baseTokenData.extendedName,
+        base_symbol: baseTokenData.name,
+        quote_id: targetTokenData.code,
+        quote_name: targetTokenData.extendedName,
+        quote_symbol: targetTokenData.name,
         base_volume: baseTokenVolume,
-        target_volume: targetTokenVolume,
+        quote_volume: targetTokenVolume,
         last_price: baseTokenVolume / targetTokenVolume,
-        pool_id: x.pool_id,
+      };
+    });
+
+    return result;
+  }
+
+  getCGTickers(dailyVolumes: any): TickerDto[] {
+    const result: TickerDto[] = [];
+    const computedPairsData = this.computeTickersPairsData(dailyVolumes);
+    Object.keys(computedPairsData).forEach((key) => {
+      result.push({
+        ticker_id: `${computedPairsData[key].base_name}_${computedPairsData[key].quote_name}`,
+        base_currency: computedPairsData[key].base_name,
+        target_currency: computedPairsData[key].quote_name,
+        base_volume: computedPairsData[key].base_volume,
+        target_volume: computedPairsData[key].quote_volume,
+        last_price: computedPairsData[key].last_price,
+        pool_id: `${computedPairsData[key].base_id}:${computedPairsData[key].quote_id}`,
       });
     });
 
     return result;
+  }
+
+  getCMMTickers(dailyVolumes: any): CMMTickerResponseDto {
+    return this.computeTickersPairsData(dailyVolumes);
   }
 
   async getKDXCirculatingSupply() {
