@@ -6,7 +6,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { DailyVolumesService } from '../daily-volume/daily-volume.service';
-import { DexDataService } from '../dex-data/dex-data.service';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsDto } from './dto/analytics.dto';
 import { TokenStatsResponseDto } from './dto/token-stats-response.dto';
@@ -21,7 +20,6 @@ export class AnalyticsController {
   constructor(
     private readonly analyticsService: AnalyticsService,
     private readonly dailyVolumeService: DailyVolumesService,
-    private readonly dexDataService: DexDataService,
     private readonly tokenCandlesService: TokenCandlesService,
   ) {}
 
@@ -63,17 +61,29 @@ export class AnalyticsController {
       moment().format('YYYY-MM-DD'),
     );
 
-    const tickersCurrentVolume24 =
-      this.dexDataService.getCGTickers(currentVolume24);
-    const tickersInitialDailyVolume =
-      this.dexDataService.getCGTickers(initialDailyVolumes);
-    const tickersFinalDailyVolume =
-      this.dexDataService.getCGTickers(finalDailyVolumes);
+    const pairsFromExchange =
+      await this.analyticsService.getPairsFromExchange();
+
+    const aggregatedCurrentVolume24 =
+      this.analyticsService.getAggregatedPairVolumes(
+        currentVolume24,
+        pairsFromExchange,
+      );
+    const aggregatedInitialDailyVolume =
+      this.analyticsService.getAggregatedPairVolumes(
+        initialDailyVolumes,
+        pairsFromExchange,
+      );
+    const aggregatedFinalDailyVolume =
+      this.analyticsService.getAggregatedPairVolumes(
+        finalDailyVolumes,
+        pairsFromExchange,
+      );
 
     const tokensVolumesStats = await this.analyticsService.getTokenStats(
-      tickersCurrentVolume24,
-      tickersInitialDailyVolume,
-      tickersFinalDailyVolume,
+      aggregatedCurrentVolume24,
+      aggregatedInitialDailyVolume,
+      aggregatedFinalDailyVolume,
     );
 
     await asyncForEach(Object.keys(tokensVolumesStats), async (item) => {
@@ -84,7 +94,6 @@ export class AnalyticsController {
         moment().subtract(1, 'days').format('YYYY-MM-DD'),
         moment().format('YYYY-MM-DD'),
       );
-      console.log(candles);
 
       const prices = candles?.length
         ? {
