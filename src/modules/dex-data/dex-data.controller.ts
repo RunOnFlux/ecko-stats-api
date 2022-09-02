@@ -34,7 +34,7 @@ export class DexDataController {
     type: [TickerDto],
   })
   async getTickers() {
-    const dailyVolumes = await this.dailyVolumeService.findAllAggregateByDay(
+    const volumes = await this.dailyVolumeService.findAll(
       'kswap.exchange.SWAP',
       moment().format('YYYY-MM-DD'),
       moment().format('YYYY-MM-DD'),
@@ -42,8 +42,8 @@ export class DexDataController {
 
     let result: TickerDto[] = [];
 
-    if (dailyVolumes && dailyVolumes.length) {
-      result = this.dexDataService.getCGTickers(dailyVolumes);
+    if (volumes && volumes.length) {
+      result = this.dexDataService.getCGTickers(volumes);
     }
 
     return result;
@@ -55,7 +55,7 @@ export class DexDataController {
     type: CMMTickerResponseDto,
   })
   async getCMMTickers() {
-    const dailyVolumes = await this.dailyVolumeService.findAllAggregateByDay(
+    const volumes = await this.dailyVolumeService.findAll(
       'kswap.exchange.SWAP',
       moment().format('YYYY-MM-DD'),
       moment().format('YYYY-MM-DD'),
@@ -63,8 +63,8 @@ export class DexDataController {
 
     let result: CMMTickerResponseDto;
 
-    if (dailyVolumes && dailyVolumes.length) {
-      result = this.dexDataService.getCMMTickers(dailyVolumes);
+    if (volumes && volumes.length) {
+      result = this.dexDataService.getCMMTickers(volumes);
     }
 
     return result;

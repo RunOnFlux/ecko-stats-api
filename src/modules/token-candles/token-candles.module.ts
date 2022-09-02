@@ -16,5 +16,6 @@ import { TokenCandlesImporter } from './token-candles.importer';
   ],
   providers: [TokenCandlesService, TokenCandlesImporter],
   controllers: [TokenCandlesController],
+  exports: [TokenCandlesService],
 })
 export class TokenCandlesModule {}

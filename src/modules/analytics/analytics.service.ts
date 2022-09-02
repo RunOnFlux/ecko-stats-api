@@ -12,6 +12,11 @@ import {
 } from './dto/analytics.dto';
 import { Analytics, AnalyticsDocument } from './schemas/analytics.schema';
 import { extractDecimal, extractTime } from 'src/utils/pact-data.utils';
+import { CMMTickerResponseDto } from '../dex-data/dto/CMMTicker.dto';
+import { TickerDto } from '../dex-data/dto/ticker.dto';
+import * as _ from 'lodash';
+import { TokenStatsResponseDto } from './dto/token-stats-response.dto';
+import { getPercentage } from 'src/utils/math.utils';
 
 @Injectable()
 export class AnalyticsService {
@@ -433,4 +438,97 @@ export class AnalyticsService {
       .sort([['dayString', 'asc']])
       .exec();
   }
+
+  async getTokenStats(
+    tickersCurrentVolume24: TickerDto[],
+    tickersInitialDailyVolume: TickerDto[],
+    tickersFinalDailyVolume: TickerDto[],
+  ) {
+    let result: TokenStatsResponseDto = {};
+
+    const currentTokensVolume24 = getTokensVolume(tickersCurrentVolume24);
+    const currentTokensVolumeInitial = getTokensVolume(
+      tickersInitialDailyVolume,
+    );
+    const currentTokensVolumeFinal = getTokensVolume(tickersFinalDailyVolume);
+
+    Object.keys(currentTokensVolume24).forEach((key) => {
+      result[key] = {
+        volume24h: currentTokensVolume24[key]?.volume,
+        volumeChange24h: getPercentage(
+          currentTokensVolumeInitial[key]?.volume,
+          currentTokensVolumeFinal[key]?.volume,
+        ),
+        priceChange24h: 0,
+      };
+    });
+
+    return result;
+  }
+}
+
+function getTokensVolume(tickers: TickerDto[]) {
+  let result = {};
+
+  const groupedByBaseCurrency = _.groupBy(
+    tickers,
+    (el: TickerDto) => el.base_currency,
+  );
+
+  const groupedByTargetCurrency = _.groupBy(
+    tickers,
+    (el: TickerDto) => el.target_currency,
+  );
+
+  Object.keys(groupedByBaseCurrency).forEach((key) => {
+    let res = 0;
+    const sum = groupedByBaseCurrency[key].reduce((a, b) => {
+      return a + b['base_volume'];
+    }, 0);
+    res = res + sum;
+
+    const ccc = tickers.find((x) => x.base_currency === key);
+
+    const tokenKey = tickers
+      .find((x) => x.base_currency === key)
+      .pool_id.split(':')[0];
+
+    if (result[tokenKey] === null || result[tokenKey] === undefined) {
+      result[tokenKey] = {
+        volume: res,
+      };
+    } else {
+      if (result[tokenKey].volume) {
+        result[tokenKey].volume += res;
+      } else {
+        result[tokenKey].volume = res;
+      }
+    }
+  });
+
+  Object.keys(groupedByTargetCurrency).forEach((key) => {
+    let res = 0;
+    const sum = groupedByTargetCurrency[key].reduce((a, b) => {
+      return a + b['target_volume'];
+    }, 0);
+    res = res + sum;
+
+    const tokenKey = tickers
+      .find((x) => x.target_currency === key)
+      .pool_id.split(':')[1];
+
+    if (result[tokenKey] === null || result[tokenKey] === undefined) {
+      result[tokenKey] = {
+        volume: res,
+      };
+    } else {
+      if (result[tokenKey].volume) {
+        result[tokenKey].volume += res;
+      } else {
+        result[tokenKey].volume = res;
+      }
+    }
+  });
+
+  return result;
 }
