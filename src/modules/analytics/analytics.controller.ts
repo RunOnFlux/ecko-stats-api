@@ -84,10 +84,18 @@ export class AnalyticsController {
         moment().subtract(1, 'days').format('YYYY-MM-DD'),
         moment().format('YYYY-MM-DD'),
       );
+      console.log(candles);
+
       const prices = candles?.length
         ? {
-            initial: candles[0]?.price?.close,
-            final: candles[candles.length - 1]?.price?.close,
+            initial:
+              asset === 'KDA'
+                ? candles[0]?.price?.close
+                : candles[0]?.usdPrice?.close,
+            final:
+              asset === 'KDA'
+                ? candles[candles.length - 1]?.price?.close
+                : candles[candles.length - 1]?.usdPrice?.close,
           }
         : null;
       if (prices && prices.initial && prices.final) {
