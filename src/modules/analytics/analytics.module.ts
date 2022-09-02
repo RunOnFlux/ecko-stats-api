@@ -15,7 +15,6 @@ import { Analytics, AnalyticsSchema } from './schemas/analytics.schema';
       { name: Analytics.name, schema: AnalyticsSchema },
     ]),
     HttpModule,
-    DexDataModule,
     DailyVolumeModule,
     TokenCandlesModule,
   ],

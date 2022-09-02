@@ -34,6 +34,31 @@ export class AnalyticsService {
     private analyticsModel: Model<AnalyticsDocument>,
   ) {}
 
+  async getPairsFromExchange(): Promise<string[]> {
+    try {
+      const pactResponse = await pact.fetch.local(
+        {
+          pactCode: `(kaddex.exchange.get-pairs)`,
+          meta: pact.lang.mkMeta(
+            '',
+            this.CHAIN_ID.toString(),
+            0.0000001,
+            150000,
+            Math.round(new Date().getTime() / 1000) - 10,
+            600,
+          ),
+        },
+        this.URL,
+      );
+      const {
+        result: { data },
+      }: { result: { data: string[] } } = pactResponse;
+      return data;
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
   async importCirculatingSupply() {
     this.logger.log('ANALYTICS IMPORT CIRCULATING SUPPLY START');
     try {
@@ -439,10 +464,118 @@ export class AnalyticsService {
       .exec();
   }
 
+  // async getTokenStats(
+  //   tickersCurrentVolume24: TickerDto[],
+  //   tickersInitialDailyVolume: TickerDto[],
+  //   tickersFinalDailyVolume: TickerDto[],
+  // ) {
+  //   let result: TokenStatsResponseDto = {};
+
+  //   const currentTokensVolume24 = getTokensVolume(tickersCurrentVolume24);
+  //   const currentTokensVolumeInitial = getTokensVolume(
+  //     tickersInitialDailyVolume,
+  //   );
+  //   const currentTokensVolumeFinal = getTokensVolume(tickersFinalDailyVolume);
+
+  //   Object.keys(currentTokensVolume24).forEach((key) => {
+  //     result[key] = {
+  //       volume24h: currentTokensVolume24[key]?.volume,
+  //       volumeChange24h: getPercentage(
+  //         currentTokensVolumeInitial[key]?.volume,
+  //         currentTokensVolumeFinal[key]?.volume,
+  //       ),
+  //       priceChange24h: 0,
+  //     };
+  //   });
+
+  //   return result;
+  // }
+
+  getAggregatedPairVolumes(volumes: any[], pairsFromExchange: string[]) {
+    let result: any = {};
+
+    pairsFromExchange.forEach((pair) => {
+      const [baseTokenCode, targetTokenCode] = pair.split(':');
+
+      const baseTokenCodeSplitted = baseTokenCode.split('.');
+      const targetTokenCodeSplitted = targetTokenCode.split('.');
+
+      const baseTokenDataNamespace =
+        baseTokenCodeSplitted.length > 1 ? baseTokenCodeSplitted[0] : null;
+      const baseTokenDataName =
+        baseTokenCodeSplitted.length > 1
+          ? baseTokenCodeSplitted[1]
+          : baseTokenCodeSplitted[0];
+
+      const targetTokenDataNamespace =
+        targetTokenCodeSplitted.length > 1 ? targetTokenCodeSplitted[0] : null;
+      const targetTokenDataName =
+        targetTokenCodeSplitted.length > 1
+          ? targetTokenCodeSplitted[1]
+          : targetTokenCodeSplitted[0];
+
+      // filter volumes on both side foreach pair
+      const pairVolumes = _.filter(volumes, (volume) => {
+        return (
+          (volume.tokenFromNamespace === baseTokenDataNamespace &&
+            volume.tokenFromName === baseTokenDataName &&
+            volume.tokenToNamespace === targetTokenDataNamespace &&
+            volume.tokenToName === targetTokenDataName) ||
+          (volume.tokenFromNamespace === targetTokenDataNamespace &&
+            volume.tokenFromName === targetTokenDataName &&
+            volume.tokenToNamespace === baseTokenDataNamespace &&
+            volume.tokenToName === baseTokenDataName)
+        );
+      });
+
+      let baseTokenVolume = 0;
+      let targetTokenVolume = 0;
+
+      pairVolumes.forEach((volume) => {
+        if (
+          volume.tokenFromNamespace === baseTokenDataNamespace &&
+          volume.tokenFromName === baseTokenDataName
+        ) {
+          baseTokenVolume += volume.tokenFromVolume;
+        }
+
+        if (
+          volume.tokenToNamespace === baseTokenDataNamespace &&
+          volume.tokenToName === baseTokenDataName
+        ) {
+          baseTokenVolume += volume.tokenToVolume;
+        }
+
+        if (
+          volume.tokenFromNamespace === targetTokenDataNamespace &&
+          volume.tokenFromName === targetTokenDataName
+        ) {
+          targetTokenVolume += volume.tokenFromVolume;
+        }
+
+        if (
+          volume.tokenToNamespace === targetTokenDataNamespace &&
+          volume.tokenToName === targetTokenDataName
+        ) {
+          targetTokenVolume += volume.tokenToVolume;
+        }
+      });
+
+      result[pair] = {
+        baseTokenCode,
+        targetTokenCode,
+        baseVolume: baseTokenVolume,
+        targetVolume: targetTokenVolume,
+      };
+    });
+
+    return result;
+  }
+
   async getTokenStats(
-    tickersCurrentVolume24: TickerDto[],
-    tickersInitialDailyVolume: TickerDto[],
-    tickersFinalDailyVolume: TickerDto[],
+    tickersCurrentVolume24: any,
+    tickersInitialDailyVolume: any,
+    tickersFinalDailyVolume: any,
   ) {
     let result: TokenStatsResponseDto = {};
 
@@ -453,12 +586,16 @@ export class AnalyticsService {
     const currentTokensVolumeFinal = getTokensVolume(tickersFinalDailyVolume);
 
     Object.keys(currentTokensVolume24).forEach((key) => {
+      const volume24ChangePercentage = getPercentage(
+        currentTokensVolumeInitial[key]?.volume,
+        currentTokensVolumeFinal[key]?.volume,
+      );
       result[key] = {
-        volume24h: currentTokensVolume24[key]?.volume,
-        volumeChange24h: getPercentage(
-          currentTokensVolumeInitial[key]?.volume,
-          currentTokensVolumeFinal[key]?.volume,
-        ),
+        volume24h: currentTokensVolume24[key]?.volume ?? 0,
+        volumeChange24h:
+          volume24ChangePercentage && !isNaN(volume24ChangePercentage)
+            ? volume24ChangePercentage
+            : 0,
         priceChange24h: 0,
       };
     });
@@ -467,41 +604,35 @@ export class AnalyticsService {
   }
 }
 
-function getTokensVolume(tickers: TickerDto[]) {
+function getTokensVolume(tickers: any) {
   let result = {};
 
   const groupedByBaseCurrency = _.groupBy(
     tickers,
-    (el: TickerDto) => el.base_currency,
+    (el: any) => el.baseTokenCode,
   );
 
   const groupedByTargetCurrency = _.groupBy(
     tickers,
-    (el: TickerDto) => el.target_currency,
+    (el: any) => el.targetTokenCode,
   );
 
   Object.keys(groupedByBaseCurrency).forEach((key) => {
     let res = 0;
     const sum = groupedByBaseCurrency[key].reduce((a, b) => {
-      return a + b['base_volume'];
+      return a + b.baseVolume;
     }, 0);
     res = res + sum;
 
-    const ccc = tickers.find((x) => x.base_currency === key);
-
-    const tokenKey = tickers
-      .find((x) => x.base_currency === key)
-      .pool_id.split(':')[0];
-
-    if (result[tokenKey] === null || result[tokenKey] === undefined) {
-      result[tokenKey] = {
+    if (result[key] === null || result[key] === undefined) {
+      result[key] = {
         volume: res,
       };
     } else {
-      if (result[tokenKey].volume) {
-        result[tokenKey].volume += res;
+      if (result[key].volume) {
+        result[key].volume += res;
       } else {
-        result[tokenKey].volume = res;
+        result[key].volume = res;
       }
     }
   });
@@ -509,23 +640,19 @@ function getTokensVolume(tickers: TickerDto[]) {
   Object.keys(groupedByTargetCurrency).forEach((key) => {
     let res = 0;
     const sum = groupedByTargetCurrency[key].reduce((a, b) => {
-      return a + b['target_volume'];
+      return a + b.targetVolume;
     }, 0);
     res = res + sum;
 
-    const tokenKey = tickers
-      .find((x) => x.target_currency === key)
-      .pool_id.split(':')[1];
-
-    if (result[tokenKey] === null || result[tokenKey] === undefined) {
-      result[tokenKey] = {
+    if (result[key] === null || result[key] === undefined) {
+      result[key] = {
         volume: res,
       };
     } else {
-      if (result[tokenKey].volume) {
-        result[tokenKey].volume += res;
+      if (result[key].volume) {
+        result[key].volume += res;
       } else {
-        result[tokenKey].volume = res;
+        result[key].volume = res;
       }
     }
   });
