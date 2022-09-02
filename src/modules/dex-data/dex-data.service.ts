@@ -27,7 +27,7 @@ export class DexDataService {
     return result;
   }
 
-  private computeTickersPairsData(dailyVolumes: any): CMMTickerResponseDto {
+  private computeTickersPairsData(volumes: any): CMMTickerResponseDto {
     const result = new CMMTickerResponseDto();
     const pairs = this.getPairs();
     pairs.forEach((x) => {
@@ -53,7 +53,7 @@ export class DexDataService {
           : targetTokenCodeSplitted[0];
 
       // filter volumes on both side foreach pair
-      const pairVolumes = _.filter(dailyVolumes[0].volumes, (volume) => {
+      const pairVolumes = _.filter(volumes, (volume) => {
         return (
           (volume.tokenFromNamespace === baseTokenDataNamespace &&
             volume.tokenFromName === baseTokenDataName &&
@@ -115,14 +115,14 @@ export class DexDataService {
     return result;
   }
 
-  getCGTickers(dailyVolumes: any): TickerDto[] {
+  getCGTickers(volumes: any): TickerDto[] {
     const result: TickerDto[] = [];
-    const computedPairsData = this.computeTickersPairsData(dailyVolumes);
+    const computedPairsData = this.computeTickersPairsData(volumes);
     Object.keys(computedPairsData).forEach((key) => {
       result.push({
-        ticker_id: `${computedPairsData[key].base_name}_${computedPairsData[key].quote_name}`,
-        base_currency: computedPairsData[key].base_name,
-        target_currency: computedPairsData[key].quote_name,
+        ticker_id: `${computedPairsData[key].base_symbol}_${computedPairsData[key].quote_symbol}`,
+        base_currency: computedPairsData[key].base_symbol,
+        target_currency: computedPairsData[key].quote_symbol,
         base_volume: computedPairsData[key].base_volume,
         target_volume: computedPairsData[key].quote_volume,
         last_price: computedPairsData[key].last_price,
@@ -133,8 +133,8 @@ export class DexDataService {
     return result;
   }
 
-  getCMMTickers(dailyVolumes: any): CMMTickerResponseDto {
-    return this.computeTickersPairsData(dailyVolumes);
+  getCMMTickers(volumes: any): CMMTickerResponseDto {
+    return this.computeTickersPairsData(volumes);
   }
 
   async getKDXCirculatingSupply() {
