@@ -464,33 +464,6 @@ export class AnalyticsService {
       .exec();
   }
 
-  // async getTokenStats(
-  //   tickersCurrentVolume24: TickerDto[],
-  //   tickersInitialDailyVolume: TickerDto[],
-  //   tickersFinalDailyVolume: TickerDto[],
-  // ) {
-  //   let result: TokenStatsResponseDto = {};
-
-  //   const currentTokensVolume24 = getTokensVolume(tickersCurrentVolume24);
-  //   const currentTokensVolumeInitial = getTokensVolume(
-  //     tickersInitialDailyVolume,
-  //   );
-  //   const currentTokensVolumeFinal = getTokensVolume(tickersFinalDailyVolume);
-
-  //   Object.keys(currentTokensVolume24).forEach((key) => {
-  //     result[key] = {
-  //       volume24h: currentTokensVolume24[key]?.volume,
-  //       volumeChange24h: getPercentage(
-  //         currentTokensVolumeInitial[key]?.volume,
-  //         currentTokensVolumeFinal[key]?.volume,
-  //       ),
-  //       priceChange24h: 0,
-  //     };
-  //   });
-
-  //   return result;
-  // }
-
   getAggregatedPairVolumes(volumes: any[], pairsFromExchange: string[]) {
     let result: any = {};
 
