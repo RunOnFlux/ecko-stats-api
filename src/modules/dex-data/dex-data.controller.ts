@@ -78,4 +78,13 @@ export class DexDataController {
   async getKDXCirculatingSupply() {
     return await this.dexDataService.getKDXCirculatingSupply();
   }
+
+  @Get('kdx-total-supply')
+  @ApiOperation({ summary: `Get KDX total supply` })
+  @ApiOkResponse({
+    type: Number,
+  })
+  async getKDXTotalSupply() {
+    return await this.dexDataService.getKDXTotalSupply();
+  }
 }

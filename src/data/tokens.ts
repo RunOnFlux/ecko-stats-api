@@ -76,6 +76,17 @@ export const PAIR_TOKENS = {
       code: 'kdlaunch.kdswap-token',
     },
   },
+  'coin:free.backalley': {
+    name: 'coin:free.backalley',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'BKA',
+      code: 'free.backalley',
+    },
+  },
   'coin:free.kishu-ken': {
     name: 'coin:free.kishu-ken',
     token0: {
@@ -107,6 +118,28 @@ export const PAIR_TOKENS = {
     token1: {
       name: 'JDE',
       code: 'free.jodie-token',
+    },
+  },
+  'coin:lago.kwBTC': {
+    name: 'coin:lago.kwBTC',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'kwBTC',
+      code: 'lago.kwBTC',
+    },
+  },
+  'coin:lago.USD2': {
+    name: 'coin:lago.USD2',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'USD2',
+      code: 'lago.USD2',
     },
   },
 };
@@ -152,6 +185,11 @@ export const TOKENS = {
     code: 'kdlaunch.kdswap-token',
     extendedName: 'KDSwap',
   },
+  'free.backalley': {
+    name: 'BKA',
+    code: 'free.backalley',
+    extendedName: 'Backalley',
+  },
   'free.kishu-ken': {
     name: 'KISHK',
     code: 'free.kishu-ken',
@@ -166,5 +204,15 @@ export const TOKENS = {
     name: 'JDE',
     code: 'free.jodie-token',
     extendedName: 'Jodie',
+  },
+  'lago.kwBTC': {
+    name: 'kwBTC',
+    code: 'lago.kwBTC',
+    extendedName: 'kwBTC',
+  },
+  'lago.USD2': {
+    name: 'USD2',
+    code: 'lago.USD2',
+    extendedName: 'USD2',
   },
 };

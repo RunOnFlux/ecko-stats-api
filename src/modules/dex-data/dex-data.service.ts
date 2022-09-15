@@ -162,4 +162,39 @@ export class DexDataService {
       this.logger.error(error);
     }
   }
+
+  async getKDXTotalSupply(): Promise<number> {
+    const MAX_SUPPLY = 1000000000.0;
+    try {
+      const pactResponse = await pact.fetch.local(
+        {
+          pactCode: `
+          (let* (
+            (burned (fold (+) 0.0 (map (lambda (p) (at 'total-burned (kaddex.kdx.get-raw-supply p))) (kaddex.kdx.get-purpose-list))))
+            (staking-burnt (at 'burnt-kdx (kaddex.staking.get-pool-state)))
+           ){'burned:burned, 'staking-burnt:staking-burnt})
+          `,
+          meta: pact.lang.mkMeta(
+            '',
+            this.CHAIN_ID.toString(),
+            0.0000001,
+            150000,
+            Math.round(new Date().getTime() / 1000) - 10,
+            600,
+          ),
+        },
+        this.URL,
+      );
+      const {
+        result: { data },
+      }: { result: { data: any } } = pactResponse;
+
+      const tokenBurn = extractDecimal(data['burned']);
+      const stakingBurn = extractDecimal(data['staking-burnt']);
+
+      return MAX_SUPPLY - (tokenBurn + stakingBurn);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
 }

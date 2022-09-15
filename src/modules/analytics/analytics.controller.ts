@@ -13,6 +13,10 @@ import * as moment from 'moment';
 import { TokenCandlesService } from '../token-candles/token-candles.service';
 import { asyncForEach } from 'src/utils/array.utils';
 import { getPercentage } from 'src/utils/math.utils';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom, map } from 'rxjs';
+import { DailyTvlService } from '../daily-tvl/daily-tvl.service';
+import { TVL_COLLECTION_NAME } from '../daily-tvl/schemas/daily-tvl.schema';
 
 @Controller('analytics')
 @ApiTags('Analytics')
@@ -21,6 +25,8 @@ export class AnalyticsController {
     private readonly analyticsService: AnalyticsService,
     private readonly dailyVolumeService: DailyVolumesService,
     private readonly tokenCandlesService: TokenCandlesService,
+    private readonly httpService: HttpService,
+    private readonly dailyTvlService: DailyTvlService,
   ) {}
 
   @Get('get-data')
@@ -118,5 +124,25 @@ export class AnalyticsController {
     });
 
     return tokensVolumesStats;
+  }
+
+  @Get('get-pools-stats')
+  @ApiOperation({ summary: `Get analytics pools stats` })
+  async getPoolsStats() {
+    const pairsFromExchange =
+      await this.analyticsService.getPairsFromExchange();
+
+    const volumes24h = await this.dailyVolumeService.findAll(
+      'kswap.exchange.SWAP',
+      moment().subtract(1, 'days').format('YYYY-MM-DD'),
+      moment().subtract(1, 'days').format('YYYY-MM-DD'),
+    );
+
+    const aggregatedVolumes24h = this.analyticsService.getAggregatedPairVolumes(
+      volumes24h,
+      pairsFromExchange,
+    );
+
+    return aggregatedVolumes24h;
   }
 }

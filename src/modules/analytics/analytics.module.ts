@@ -1,6 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { DailyTvlModule } from '../daily-tvl/daily-tvl.module';
 import { DailyVolumeModule } from '../daily-volume/daily-volume.module';
 import { DexDataModule } from '../dex-data/dex-data.module';
 import { TokenCandlesModule } from '../token-candles/token-candles.module';
@@ -17,6 +18,7 @@ import { Analytics, AnalyticsSchema } from './schemas/analytics.schema';
     HttpModule,
     DailyVolumeModule,
     TokenCandlesModule,
+    DailyTvlModule,
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService, AnalyticsImporter],
