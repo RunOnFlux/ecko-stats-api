@@ -12,6 +12,11 @@ import {
 } from './dto/analytics.dto';
 import { Analytics, AnalyticsDocument } from './schemas/analytics.schema';
 import { extractDecimal, extractTime } from 'src/utils/pact-data.utils';
+import { CMMTickerResponseDto } from '../dex-data/dto/CMMTicker.dto';
+import { TickerDto } from '../dex-data/dto/ticker.dto';
+import * as _ from 'lodash';
+import { TokenStatsResponseDto } from './dto/token-stats-response.dto';
+import { getPercentage } from 'src/utils/math.utils';
 
 @Injectable()
 export class AnalyticsService {
@@ -28,6 +33,31 @@ export class AnalyticsService {
     @InjectModel(Analytics.name)
     private analyticsModel: Model<AnalyticsDocument>,
   ) {}
+
+  async getPairsFromExchange(): Promise<string[]> {
+    try {
+      const pactResponse = await pact.fetch.local(
+        {
+          pactCode: `(kaddex.exchange.get-pairs)`,
+          meta: pact.lang.mkMeta(
+            '',
+            this.CHAIN_ID.toString(),
+            0.0000001,
+            150000,
+            Math.round(new Date().getTime() / 1000) - 10,
+            600,
+          ),
+        },
+        this.URL,
+      );
+      const {
+        result: { data },
+      }: { result: { data: string[] } } = pactResponse;
+      return data;
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
 
   async importCirculatingSupply() {
     this.logger.log('ANALYTICS IMPORT CIRCULATING SUPPLY START');
@@ -433,4 +463,172 @@ export class AnalyticsService {
       .sort([['dayString', 'asc']])
       .exec();
   }
+
+  getAggregatedPairVolumes(volumes: any[], pairsFromExchange: string[]) {
+    let result: any = {};
+
+    pairsFromExchange.forEach((pair) => {
+      const [baseTokenCode, targetTokenCode] = pair.split(':');
+
+      const baseTokenCodeSplitted = baseTokenCode.split('.');
+      const targetTokenCodeSplitted = targetTokenCode.split('.');
+
+      const baseTokenDataNamespace =
+        baseTokenCodeSplitted.length > 1 ? baseTokenCodeSplitted[0] : null;
+      const baseTokenDataName =
+        baseTokenCodeSplitted.length > 1
+          ? baseTokenCodeSplitted[1]
+          : baseTokenCodeSplitted[0];
+
+      const targetTokenDataNamespace =
+        targetTokenCodeSplitted.length > 1 ? targetTokenCodeSplitted[0] : null;
+      const targetTokenDataName =
+        targetTokenCodeSplitted.length > 1
+          ? targetTokenCodeSplitted[1]
+          : targetTokenCodeSplitted[0];
+
+      // filter volumes on both side foreach pair
+      const pairVolumes = _.filter(volumes, (volume) => {
+        return (
+          (volume.tokenFromNamespace === baseTokenDataNamespace &&
+            volume.tokenFromName === baseTokenDataName &&
+            volume.tokenToNamespace === targetTokenDataNamespace &&
+            volume.tokenToName === targetTokenDataName) ||
+          (volume.tokenFromNamespace === targetTokenDataNamespace &&
+            volume.tokenFromName === targetTokenDataName &&
+            volume.tokenToNamespace === baseTokenDataNamespace &&
+            volume.tokenToName === baseTokenDataName)
+        );
+      });
+
+      let baseTokenVolume = 0;
+      let targetTokenVolume = 0;
+
+      pairVolumes.forEach((volume) => {
+        if (
+          volume.tokenFromNamespace === baseTokenDataNamespace &&
+          volume.tokenFromName === baseTokenDataName
+        ) {
+          baseTokenVolume += volume.tokenFromVolume;
+        }
+
+        if (
+          volume.tokenToNamespace === baseTokenDataNamespace &&
+          volume.tokenToName === baseTokenDataName
+        ) {
+          baseTokenVolume += volume.tokenToVolume;
+        }
+
+        if (
+          volume.tokenFromNamespace === targetTokenDataNamespace &&
+          volume.tokenFromName === targetTokenDataName
+        ) {
+          targetTokenVolume += volume.tokenFromVolume;
+        }
+
+        if (
+          volume.tokenToNamespace === targetTokenDataNamespace &&
+          volume.tokenToName === targetTokenDataName
+        ) {
+          targetTokenVolume += volume.tokenToVolume;
+        }
+      });
+
+      result[pair] = {
+        baseTokenCode,
+        targetTokenCode,
+        baseVolume: baseTokenVolume,
+        targetVolume: targetTokenVolume,
+      };
+    });
+
+    return result;
+  }
+
+  async getTokenStats(
+    tickersCurrentVolume24: any,
+    tickersInitialDailyVolume: any,
+    tickersFinalDailyVolume: any,
+  ) {
+    let result: TokenStatsResponseDto = {};
+
+    const currentTokensVolume24 = getTokensVolume(tickersCurrentVolume24);
+    const currentTokensVolumeInitial = getTokensVolume(
+      tickersInitialDailyVolume,
+    );
+    const currentTokensVolumeFinal = getTokensVolume(tickersFinalDailyVolume);
+
+    Object.keys(currentTokensVolume24).forEach((key) => {
+      const volume24ChangePercentage = getPercentage(
+        currentTokensVolumeInitial[key]?.volume,
+        currentTokensVolumeFinal[key]?.volume,
+      );
+      result[key] = {
+        volume24h: currentTokensVolume24[key]?.volume ?? 0,
+        volumeChange24h:
+          volume24ChangePercentage && !isNaN(volume24ChangePercentage)
+            ? volume24ChangePercentage
+            : 0,
+        priceChange24h: 0,
+      };
+    });
+
+    return result;
+  }
+}
+
+function getTokensVolume(tickers: any) {
+  let result = {};
+
+  const groupedByBaseCurrency = _.groupBy(
+    tickers,
+    (el: any) => el.baseTokenCode,
+  );
+
+  const groupedByTargetCurrency = _.groupBy(
+    tickers,
+    (el: any) => el.targetTokenCode,
+  );
+
+  Object.keys(groupedByBaseCurrency).forEach((key) => {
+    let res = 0;
+    const sum = groupedByBaseCurrency[key].reduce((a, b) => {
+      return a + b.baseVolume;
+    }, 0);
+    res = res + sum;
+
+    if (result[key] === null || result[key] === undefined) {
+      result[key] = {
+        volume: res,
+      };
+    } else {
+      if (result[key].volume) {
+        result[key].volume += res;
+      } else {
+        result[key].volume = res;
+      }
+    }
+  });
+
+  Object.keys(groupedByTargetCurrency).forEach((key) => {
+    let res = 0;
+    const sum = groupedByTargetCurrency[key].reduce((a, b) => {
+      return a + b.targetVolume;
+    }, 0);
+    res = res + sum;
+
+    if (result[key] === null || result[key] === undefined) {
+      result[key] = {
+        volume: res,
+      };
+    } else {
+      if (result[key].volume) {
+        result[key].volume += res;
+      } else {
+        result[key].volume = res;
+      }
+    }
+  });
+
+  return result;
 }

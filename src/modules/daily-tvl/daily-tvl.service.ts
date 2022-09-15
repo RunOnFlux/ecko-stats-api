@@ -34,8 +34,8 @@ export class DailyTvlService {
 
   async findAllAggregate(
     eventName: string,
-    dateStart: Date,
-    dateEnd: Date,
+    dateStart: Date | string,
+    dateEnd: Date | string,
   ): Promise<any> {
     return await this.connection
       .collection(eventName)

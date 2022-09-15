@@ -15,5 +15,6 @@ import { DailyTvlImporter } from './daily-tvl.importer';
   ],
   providers: [DailyTvlService, DailyTvlImporter],
   controllers: [DailyTvlController],
+  exports: [DailyTvlService],
 })
 export class DailyTvlModule {}

@@ -44,8 +44,8 @@ export class TokenCandlesService {
 
   async findAll(
     pairName: string,
-    dateStart: Date,
-    dateEnd: Date,
+    dateStart: Date | string,
+    dateEnd: Date | string,
   ): Promise<any[]> {
     const collections = await this.connection.db.listCollections().toArray();
     if (!collections.find((c) => c.name === `candles__${pairName}`)) {
