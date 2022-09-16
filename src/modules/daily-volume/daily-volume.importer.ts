@@ -38,16 +38,25 @@ export class DailyVolumeImporter {
     );
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
   @Command({
     command: 'import:volume-daily <saveUncompleted>',
   })
-  async dailyVolumeImport(saveUncompleted: string) {
+  async dailyVolumeImportCommand(saveUncompleted: string) {
     await this.dailyVolumesService.volumeImport(
       'kaddex.exchange.SWAP',
       moment().subtract(1, 'days').toDate(),
       moment().toDate(),
       saveUncompleted === '1',
+    );
+  }
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async dailyVolumeImport() {
+    await this.dailyVolumesService.volumeImport(
+      'kaddex.exchange.SWAP',
+      moment().subtract(1, 'days').toDate(),
+      moment().toDate(),
+      true,
     );
   }
 }

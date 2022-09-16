@@ -108,7 +108,7 @@ export class DexDataService {
         quote_symbol: targetTokenData.name,
         base_volume: baseTokenVolume,
         quote_volume: targetTokenVolume,
-        last_price: baseTokenVolume / targetTokenVolume,
+        last_price: targetTokenVolume / baseTokenVolume,
       };
     });
 
