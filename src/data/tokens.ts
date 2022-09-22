@@ -226,9 +226,9 @@ export const TOKENS = {
     code: 'lago.USD2',
     extendedName: 'USD2',
   },
-  'arkade.token': {
-    name: 'ARKD',
-    code: 'arkade.token',
-    extendedName: 'ARKD',
+  'free.KAYC': {
+    name: 'KAYC',
+    code: 'free.KAYC',
+    extendedName: 'KAYC',
   },
 };
