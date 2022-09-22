@@ -56,7 +56,7 @@ export class DailyVolumeImporter {
       'kaddex.exchange.SWAP',
       moment().subtract(1, 'days').toDate(),
       moment().toDate(),
-      true,
+      false,
     );
   }
 }
