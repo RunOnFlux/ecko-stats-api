@@ -65,8 +65,7 @@ export class AnalyticsService {
       const pactResponse = await pact.fetch.local(
         {
           pactCode: `(let* (
-                  (total-supply (- (kaddex.kdx.total-supply) (+ (at 'total-minted (kaddex.kdx.get-raw-supply 'network-rewards)) 
-                    (- (at 'total-minted (kaddex.kdx.get-raw-supply 'network-rewards)) (kaddex.kdx.get-balance 'kaddex-kdx-wrapper-mint-bank)))))
+                  (total-supply (- (kaddex.kdx.total-supply) (kaddex.kdx.get-balance 'kaddex-kdx-wrapper-mint-bank)))
                   (staking-data (map (kaddex.staking.get-stake-record) (keys kaddex.staking.stake-table)))
                   (staked-kdx (at 'staked-kdx (kaddex.staking.get-pool-state)))
                  ){'total-supply:total-supply, 'staking-data:staking-data, 'staked-kdx:staked-kdx})`,
