@@ -164,6 +164,17 @@ export const PAIR_TOKENS = {
       code: 'free.KAYC',
     },
   },
+  'coin:free.corona-token': {
+    name: 'coin:free.corona-token',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'CRNA',
+      code: 'free.corona-token',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -241,5 +252,15 @@ export const TOKENS = {
     name: 'ARKD',
     code: 'arkade.token',
     extendedName: 'ARKD',
+  },
+  'free.KAYC': {
+    name: 'KAYC',
+    code: 'free.KAYC',
+    extendedName: 'KAYC',
+  },
+  'free.corona-token': {
+    name: 'CRNA',
+    code: 'free.corona-token',
+    extendedName: 'CRNA',
   },
 };
