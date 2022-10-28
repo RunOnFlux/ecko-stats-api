@@ -142,6 +142,17 @@ export const PAIR_TOKENS = {
       code: 'lago.USD2',
     },
   },
+  'arkade.token:coin': {
+    name: 'arkade.token:coin',
+    token0: {
+      name: 'ARKD',
+      code: 'arkade.token',
+    },
+    token1: {
+      name: 'KDA',
+      code: 'coin',
+    },
+  },
   'coin:free.KAYC': {
     name: 'coin:free.KAYC',
     token0: {
@@ -237,10 +248,10 @@ export const TOKENS = {
     code: 'lago.USD2',
     extendedName: 'USD2',
   },
-  'free.KAYC': {
-    name: 'KAYC',
-    code: 'free.KAYC',
-    extendedName: 'KAYC',
+  'arkade.token': {
+    name: 'ARKD',
+    code: 'arkade.token',
+    extendedName: 'ARKD',
   },
   'free.KAYC': {
     name: 'KAYC',
