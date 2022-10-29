@@ -142,6 +142,17 @@ export const PAIR_TOKENS = {
       code: 'lago.USD2',
     },
   },
+  'arkade.token:coin': {
+    name: 'arkade.token:coin',
+    token0: {
+      name: 'ARKD',
+      code: 'arkade.token',
+    },
+    token1: {
+      name: 'KDA',
+      code: 'coin',
+    },
+  },
   'coin:free.KAYC': {
     name: 'coin:free.KAYC',
     token0: {
@@ -151,6 +162,17 @@ export const PAIR_TOKENS = {
     token1: {
       name: 'KAYC',
       code: 'free.KAYC',
+    },
+  },
+  'coin:free.corona-token': {
+    name: 'coin:free.corona-token',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'CRNA',
+      code: 'free.corona-token',
     },
   },
 };
@@ -226,9 +248,19 @@ export const TOKENS = {
     code: 'lago.USD2',
     extendedName: 'USD2',
   },
+  'arkade.token': {
+    name: 'ARKD',
+    code: 'arkade.token',
+    extendedName: 'ARKD',
+  },
   'free.KAYC': {
     name: 'KAYC',
     code: 'free.KAYC',
     extendedName: 'KAYC',
+  },
+  'free.corona-token': {
+    name: 'CRNA',
+    code: 'free.corona-token',
+    extendedName: 'CRNA',
   },
 };
