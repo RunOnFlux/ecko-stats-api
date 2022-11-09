@@ -1,9 +1,15 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { TokenCandleDto } from './dto/token-candle.dto';
 import { TokenCandlesService } from './token-candles.service';
 
 @Controller('candles')
+@ApiTags('Candles')
 export class TokenCandlesController {
   constructor(private readonly tokenCandlesService: TokenCandlesService) {}
 

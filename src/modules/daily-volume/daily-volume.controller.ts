@@ -54,7 +54,7 @@ export class DailyVolumeController {
   }
 
   @Get('monthly')
-  @ApiOperation({ summary: `Get aggregated daily volume` })
+  @ApiOperation({ summary: `Get aggregated monthly volume` })
   @ApiOkResponse({
     type: AggregatedMonthlyVolumeDto,
   })
