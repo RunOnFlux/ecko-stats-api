@@ -141,7 +141,7 @@ export class DexDataService {
     try {
       const pactResponse = await pact.fetch.local(
         {
-          pactCode: `(- (kaddex.kdx.total-supply) (kaddex.kdx.get-balance 'kaddex-kdx-wrapper-mint-bank))`,
+          pactCode: `(- (kaddex.kdx.total-supply) (+ (at 'burnt-kdx (kaddex.staking.get-pool-state)) (kaddex.kdx.get-balance 'kaddex-kdx-wrapper-mint-bank)))`,
           meta: pact.lang.mkMeta(
             '',
             this.CHAIN_ID.toString(),
