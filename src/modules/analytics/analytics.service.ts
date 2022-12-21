@@ -73,7 +73,7 @@ export class AnalyticsService {
             '',
             this.CHAIN_ID.toString(),
             0.0000001,
-            150000,
+            200000,
             Math.round(new Date().getTime() / 1000) - 10,
             600,
           ),
