@@ -32,17 +32,6 @@ export const PAIR_TOKENS = {
       code: 'mok.token',
     },
   },
-  'coin:lago.kwUSDC': {
-    name: 'coin:lago.kwUSDC',
-    token0: {
-      name: 'KDA',
-      code: 'coin',
-    },
-    token1: {
-      name: 'USDC',
-      code: 'lago.kwUSDC',
-    },
-  },
   'coin:kaddex.kdx': {
     name: 'coin:kaddex.kdx',
     token0: {
@@ -120,28 +109,6 @@ export const PAIR_TOKENS = {
       code: 'free.jodie-token',
     },
   },
-  'coin:lago.kwBTC': {
-    name: 'coin:lago.kwBTC',
-    token0: {
-      name: 'KDA',
-      code: 'coin',
-    },
-    token1: {
-      name: 'kwBTC',
-      code: 'lago.kwBTC',
-    },
-  },
-  'coin:lago.USD2': {
-    name: 'coin:lago.USD2',
-    token0: {
-      name: 'KDA',
-      code: 'coin',
-    },
-    token1: {
-      name: 'USD2',
-      code: 'lago.USD2',
-    },
-  },
   'arkade.token:coin': {
     name: 'arkade.token:coin',
     token0: {
@@ -203,11 +170,6 @@ export const TOKENS = {
     code: 'mok.token',
     extendedName: 'Mok',
   },
-  'lago.kwUSDC': {
-    name: 'kwUSDC',
-    code: 'lago.kwUSDC',
-    extendedName: 'Wrapped USDC',
-  },
   'kdlaunch.token': {
     name: 'KDL',
     code: 'kdlaunch.token',
@@ -237,16 +199,6 @@ export const TOKENS = {
     name: 'JDE',
     code: 'free.jodie-token',
     extendedName: 'Jodie',
-  },
-  'lago.kwBTC': {
-    name: 'kwBTC',
-    code: 'lago.kwBTC',
-    extendedName: 'kwBTC',
-  },
-  'lago.USD2': {
-    name: 'USD2',
-    code: 'lago.USD2',
-    extendedName: 'USD2',
   },
   'arkade.token': {
     name: 'ARKD',
