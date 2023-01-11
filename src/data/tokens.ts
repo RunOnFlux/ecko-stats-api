@@ -32,17 +32,6 @@ export const PAIR_TOKENS = {
       code: 'mok.token',
     },
   },
-  'coin:lago.kwUSDC': {
-    name: 'coin:lago.kwUSDC',
-    token0: {
-      name: 'KDA',
-      code: 'coin',
-    },
-    token1: {
-      name: 'USDC',
-      code: 'lago.kwUSDC',
-    },
-  },
   'coin:kaddex.kdx': {
     name: 'coin:kaddex.kdx',
     token0: {
@@ -118,28 +107,6 @@ export const PAIR_TOKENS = {
     token1: {
       name: 'JDE',
       code: 'free.jodie-token',
-    },
-  },
-  'coin:lago.kwBTC': {
-    name: 'coin:lago.kwBTC',
-    token0: {
-      name: 'KDA',
-      code: 'coin',
-    },
-    token1: {
-      name: 'kwBTC',
-      code: 'lago.kwBTC',
-    },
-  },
-  'coin:lago.USD2': {
-    name: 'coin:lago.USD2',
-    token0: {
-      name: 'KDA',
-      code: 'coin',
-    },
-    token1: {
-      name: 'USD2',
-      code: 'lago.USD2',
     },
   },
   'arkade.token:coin': {
@@ -243,20 +210,6 @@ export const TOKENS = {
       ],
     },
   },
-  'lago.kwUSDC': {
-    name: 'kwUSDC',
-    code: 'lago.kwUSDC',
-    extendedName: 'Wrapped USDC',
-    supplyConfig: {
-      cron: '30 0 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'HUdDlZmVSbPWb0pglDc3BuNzpjBr5lWdQumxZpjtN7A',
-        'h2n_CzxJnWQgwOMp8ZEbAuac3eKFH7EzZnkpi1-Z5t4',
-      ],
-    },
-  },
   'kdlaunch.token': {
     name: 'KDL',
     code: 'kdlaunch.token',
@@ -338,34 +291,6 @@ export const TOKENS = {
       liquidityHolderAccounts: [
         '3GNkXvyb2sSPpMi4UJ3fBV8PAy-eN3jbaub4Q2d-UFg',
         'aC5wNPEY7PmcEZOVnT28Ud_4Y2IuTuPO2-HjSJYr-uc',
-      ],
-    },
-  },
-  'lago.kwBTC': {
-    name: 'kwBTC',
-    code: 'lago.kwBTC',
-    extendedName: 'kwBTC',
-    supplyConfig: {
-      cron: '40 01 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'sPUW8_Od2J9IU8-6KQlwoZRFTD3oPcUbjd0M7jxBZE8',
-        'VDtMxO-Sb3yYeOXQAciqkqqdzka-nWsltxOaC4vl0wM',
-      ],
-    },
-  },
-  'lago.USD2': {
-    name: 'USD2',
-    code: 'lago.USD2',
-    extendedName: 'USD2',
-    supplyConfig: {
-      cron: '50 01 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'I92D0oGfpDfgYuJTYq25GJd_phXtk25Wql7mt2k_aXk',
-        'RZmFXT3X-We44VGpF2ODxcJ-DU0cviwjeJBd73O-IA4',
       ],
     },
   },
