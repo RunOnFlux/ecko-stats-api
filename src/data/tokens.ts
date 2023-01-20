@@ -172,182 +172,78 @@ export const TOKENS = {
     name: 'FLUX',
     code: 'runonflux.flux',
     extendedName: 'Flux',
-    supplyConfig: {
-      cron: '0 0 * * *',
-      tokenTableName: 'ledger',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'dAmjJNY06Tfo3pCrwtWC_3u2FOEwVY5A2jFqImBhxNs',
-        'xfS-eHFuzE72619KflxCn0FKSa5BhvvhyR9THumhdOE',
-      ],
-    },
+    supplyConfig: null,
   },
   'hypercent.prod-hype-coin': {
     name: 'HYPE',
     code: 'hypercent.prod-hype-coin',
     extendedName: 'Hype',
-    supplyConfig: {
-      cron: '10 0 * * *',
-      tokenTableName: 'ledger',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'rOYS3TM3WkISZVPNyMqbALhsMr0UbGnNHd9rt79pdqM',
-        '4dLp53hU4UdrezRAA8yNGr6qgHS8JME2zYEaJUCaFvY',
-      ],
-    },
+    supplyConfig: null,
   },
   'mok.token': {
     name: 'MOK',
     code: 'mok.token',
     extendedName: 'Mok',
-    supplyConfig: {
-      cron: '20 0 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'rnQxKFTUnrWfT2Yxu1wva4L0d7Eki64A3VHU1SBCRFk',
-        'Jmv7qp5izDnejTSE6fSctjC6Ndm9ZWjQsyuGELPmggg',
-      ],
-    },
+    supplyConfig: null,
   },
   'kdlaunch.token': {
     name: 'KDL',
     code: 'kdlaunch.token',
     extendedName: 'KDLaunch',
-    supplyConfig: {
-      cron: '40 0 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'E4IAYM99UixGb4ZdOhsnN97ieIp-VLM-Pw1aMSSNQps',
-        '7WcTbL_JivZKrfOiWIpHKeI74alo9F1TbX4fYG9-64g',
-      ],
-    },
+    supplyConfig: null,
   },
   'kdlaunch.kdswap-token': {
     name: 'KDS',
     code: 'kdlaunch.kdswap-token',
     extendedName: 'KDSwap',
-    supplyConfig: {
-      cron: '50 0 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'EGW7TehgCmHCGhixRGUDf4hzzIrhfWTDKF4Y4Ya0UIs',
-        'wiWV8zE2LnsUFPeVYwsVdjE5ejEAgPccOJGugJsZq-M',
-      ],
-    },
+    supplyConfig: null,
   },
   'free.backalley': {
     name: 'BKA',
     code: 'free.backalley',
     extendedName: 'Backalley',
-    supplyConfig: {
-      cron: '0 01 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'jCvFFofM4WLpjz02Q6J_LggOdWIRnafToOi_r6CJA7Y',
-        '8MEk8rlXNN-lASnwgXw4u98WYR9VCrBo4TyOmkv2RwE',
-      ],
-    },
+    supplyConfig: null,
   },
   'free.kishu-ken': {
     name: 'KISHK',
     code: 'free.kishu-ken',
     extendedName: 'Kishu Ken',
-    supplyConfig: {
-      cron: '10 01 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'Zr-vo5w_gFUHSO1Hbo0TFlQr39pygrghAs_N335uMVA',
-        '-PBQ8QWAYBvn_DezL9kM1GiW0RHC-R52Hpwr68dOV2Y',
-      ],
-    },
+    supplyConfig: null,
   },
   'free.kapybara-token': {
     name: 'KAPY',
     code: 'free.kapybara-token',
     extendedName: 'Kapy',
-    supplyConfig: {
-      cron: '20 01 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'LKNQ1mSkjWpNGxBhcCxCY45fU2poEHX00eBj0acyZDw',
-        'Nk5thBu5UPHfbBClLpQnYso0hJX691L-lqqv6leghn4',
-      ],
-    },
+    supplyConfig: null,
   },
   'free.jodie-token': {
     name: 'JDE',
     code: 'free.jodie-token',
     extendedName: 'Jodie',
-    supplyConfig: {
-      cron: '30 01 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        '3GNkXvyb2sSPpMi4UJ3fBV8PAy-eN3jbaub4Q2d-UFg',
-        'aC5wNPEY7PmcEZOVnT28Ud_4Y2IuTuPO2-HjSJYr-uc',
-      ],
-    },
+    supplyConfig: null,
   },
   'arkade.token': {
     name: 'ARKD',
     code: 'arkade.token',
     extendedName: 'ARKD',
-    supplyConfig: {
-      cron: '0 02 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        '-RswjntIBbuZyV3yobQ8GEVz10R1XWZYigUynOIhjAI',
-        'TrL5G5Bo7DwOgmDFj6oNn68moOMyE9NHrt3mGZSv90Y',
-      ],
-    },
+    supplyConfig: null,
   },
   'free.KAYC': {
     name: 'KAYC',
     code: 'free.KAYC',
     extendedName: 'KAYC',
-    supplyConfig: {
-      cron: '10 02 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'TnG62MdLCKOXGQrLv6z8RO4jokNyvVZM48vm88z8ee0',
-        'kqAa1RLq4i0yx82Sv37yEGu8a6Ha9Z6mQqtY0JTn1IY',
-      ],
-    },
+    supplyConfig: null,
   },
   'free.corona-token': {
     name: 'CRNA',
     code: 'free.corona-token',
     extendedName: 'CRNA',
-    supplyConfig: {
-      cron: '20 02 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'pV3ZR-5siArLV7NF5SEDU_RTn3k-2FlFQBfsbkNJ0Ec',
-        'ObFo30iTnDHwWDJKAay1SnmTtQotvQiAmTURf1SXGdM',
-      ],
-    },
+    supplyConfig: null,
   },
   'free.docu': {
     name: 'DOC',
     code: 'free.docu',
     extendedName: 'DOC',
-    supplyConfig: {
-      cron: '30 02 * * *',
-      tokenTableName: 'token-table',
-      balanceFieldName: 'balance',
-      liquidityHolderAccounts: [
-        'B5EURMVnV0aGJfNOPkXUdUypJaIuro1KJT4OG1_5E3E',
-        'V9VlkJNO0WxfEomju7kkcC6aB9BSRhLFrqus3h0sl_4',
-      ],
-    },
+    supplyConfig: null,
   },
 };
