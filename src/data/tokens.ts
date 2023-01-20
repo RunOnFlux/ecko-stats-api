@@ -142,6 +142,17 @@ export const PAIR_TOKENS = {
       code: 'free.corona-token',
     },
   },
+  'coin:free.docu': {
+    name: 'coin:free.docu',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'DOC',
+      code: 'free.docu',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -149,70 +160,90 @@ export const TOKENS = {
     name: 'KDA',
     code: 'coin',
     extendedName: 'Kadena Coin',
+    supplyConfig: null,
   },
   'kaddex.kdx': {
     name: 'KDX',
     code: 'kaddex.kdx',
     extendedName: 'Kaddex',
+    supplyConfig: null,
   },
   'runonflux.flux': {
     name: 'FLUX',
     code: 'runonflux.flux',
     extendedName: 'Flux',
+    supplyConfig: null,
   },
   'hypercent.prod-hype-coin': {
     name: 'HYPE',
     code: 'hypercent.prod-hype-coin',
     extendedName: 'Hype',
+    supplyConfig: null,
   },
   'mok.token': {
     name: 'MOK',
     code: 'mok.token',
     extendedName: 'Mok',
+    supplyConfig: null,
   },
   'kdlaunch.token': {
     name: 'KDL',
     code: 'kdlaunch.token',
     extendedName: 'KDLaunch',
+    supplyConfig: null,
   },
   'kdlaunch.kdswap-token': {
     name: 'KDS',
     code: 'kdlaunch.kdswap-token',
     extendedName: 'KDSwap',
+    supplyConfig: null,
   },
   'free.backalley': {
     name: 'BKA',
     code: 'free.backalley',
     extendedName: 'Backalley',
+    supplyConfig: null,
   },
   'free.kishu-ken': {
     name: 'KISHK',
     code: 'free.kishu-ken',
     extendedName: 'Kishu Ken',
+    supplyConfig: null,
   },
   'free.kapybara-token': {
     name: 'KAPY',
     code: 'free.kapybara-token',
     extendedName: 'Kapy',
+    supplyConfig: null,
   },
   'free.jodie-token': {
     name: 'JDE',
     code: 'free.jodie-token',
     extendedName: 'Jodie',
+    supplyConfig: null,
   },
   'arkade.token': {
     name: 'ARKD',
     code: 'arkade.token',
     extendedName: 'ARKD',
+    supplyConfig: null,
   },
   'free.KAYC': {
     name: 'KAYC',
     code: 'free.KAYC',
     extendedName: 'KAYC',
+    supplyConfig: null,
   },
   'free.corona-token': {
     name: 'CRNA',
     code: 'free.corona-token',
     extendedName: 'CRNA',
+    supplyConfig: null,
+  },
+  'free.docu': {
+    name: 'DOC',
+    code: 'free.docu',
+    extendedName: 'DOC',
+    supplyConfig: null,
   },
 };

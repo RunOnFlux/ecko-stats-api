@@ -12,7 +12,7 @@ import { PairDto } from './dto/pair.dto';
 import { TickerDto } from './dto/ticker.dto';
 
 @Controller('dex-data')
-@ApiTags('Dex-Data')
+@ApiTags('Dex Data')
 export class DexDataController {
   constructor(
     private readonly dexDataService: DexDataService,

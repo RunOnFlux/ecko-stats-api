@@ -14,6 +14,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { DexDataModule } from './modules/dex-data/dex-data.module';
 import { ChainDataModule } from './modules/chain-data/chain-data.module';
+import { TokenDataModule } from './modules/token-data/token-data.module';
+import { MempoolModule } from './modules/mempool/mempool.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { ChainDataModule } from './modules/chain-data/chain-data.module';
     AnalyticsModule,
     DexDataModule,
     ChainDataModule,
+    TokenDataModule,
+    MempoolModule,
   ],
   controllers: [AppController],
   providers: [
