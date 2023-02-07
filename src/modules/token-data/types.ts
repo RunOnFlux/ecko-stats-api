@@ -9,6 +9,8 @@ export class Token {
   symbol: string | null;
   @ApiProperty()
   logoUrl: string | null;
+  @ApiProperty()
+  isVerified: boolean;
 }
 
 export class Pair {

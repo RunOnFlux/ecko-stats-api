@@ -207,6 +207,7 @@ function getTokenObject(tokenCode: string): Token {
       logoUrl: verifiedToken.logoURL,
       name: verifiedToken.extendedName,
       symbol: verifiedToken.name,
+      isVerified: verifiedToken.isVerified,
     };
   } else {
     return {
@@ -214,6 +215,7 @@ function getTokenObject(tokenCode: string): Token {
       logoUrl: null,
       name: null,
       symbol: null,
+      isVerified: false,
     };
   }
 }

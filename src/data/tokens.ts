@@ -162,6 +162,7 @@ export const TOKENS = {
     extendedName: 'Kadena Coin',
     logoURL: 'https://swap.kaddex.com/images/crypto/kda-crypto.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'kaddex.kdx': {
     name: 'KDX',
@@ -169,6 +170,7 @@ export const TOKENS = {
     extendedName: 'Kaddex',
     logoURL: 'https://swap.kaddex.com/images/crypto/kaddex-crypto.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'runonflux.flux': {
     name: 'FLUX',
@@ -176,6 +178,7 @@ export const TOKENS = {
     extendedName: 'Flux',
     logoURL: 'https://swap.kaddex.com/images/crypto/flux-crypto.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'hypercent.prod-hype-coin': {
     name: 'HYPE',
@@ -183,6 +186,7 @@ export const TOKENS = {
     extendedName: 'Hype',
     logoURL: 'https://swap.kaddex.com/images/crypto/hypercent-crypto.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'mok.token': {
     name: 'MOK',
@@ -190,6 +194,7 @@ export const TOKENS = {
     extendedName: 'Mok',
     logoURL: 'https://swap.kaddex.com/images/crypto/mok.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'kdlaunch.token': {
     name: 'KDL',
@@ -197,6 +202,7 @@ export const TOKENS = {
     extendedName: 'KDLaunch',
     logoURL: 'https://swap.kaddex.com/images/crypto/kdl.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'kdlaunch.kdswap-token': {
     name: 'KDS',
@@ -204,6 +210,7 @@ export const TOKENS = {
     extendedName: 'KDSwap',
     logoURL: 'https://swap.kaddex.com/images/crypto/kds.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'free.backalley': {
     name: 'BKA',
@@ -211,6 +218,7 @@ export const TOKENS = {
     extendedName: 'Backalley',
     logoURL: 'https://swap.kaddex.com/images/crypto/bka.svg',
     supplyConfig: null,
+    isVerified: false,
   },
   'free.kishu-ken': {
     name: 'KISHK',
@@ -218,6 +226,7 @@ export const TOKENS = {
     extendedName: 'Kishu Ken',
     logoURL: 'https://swap.kaddex.com/images/crypto/kishk.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'free.kapybara-token': {
     name: 'KAPY',
@@ -225,6 +234,7 @@ export const TOKENS = {
     extendedName: 'Kapy',
     logoURL: 'https://swap.kaddex.com/images/crypto/kapy.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'free.jodie-token': {
     name: 'JDE',
@@ -232,6 +242,7 @@ export const TOKENS = {
     extendedName: 'Jodie',
     logoURL: 'https://swap.kaddex.com/images/crypto/jodie.svg',
     supplyConfig: null,
+    isVerified: false,
   },
   'arkade.token': {
     name: 'ARKD',
@@ -239,6 +250,7 @@ export const TOKENS = {
     extendedName: 'ARKD',
     logoURL: 'https://swap.kaddex.com/images/crypto/ark.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'free.KAYC': {
     name: 'KAYC',
@@ -246,6 +258,7 @@ export const TOKENS = {
     extendedName: 'KAYC',
     logoURL: 'https://swap.kaddex.com/images/crypto/kayc.svg',
     supplyConfig: null,
+    isVerified: true,
   },
   'free.corona-token': {
     name: 'CRNA',
@@ -253,6 +266,7 @@ export const TOKENS = {
     extendedName: 'CRNA',
     logoURL: 'https://swap.kaddex.com/images/crypto/corona.svg',
     supplyConfig: null,
+    isVerified: false,
   },
   'free.docu': {
     name: 'DOC',
@@ -260,6 +274,7 @@ export const TOKENS = {
     extendedName: 'DOC',
     logoURL: 'https://swap.kaddex.com/images/crypto/docushield.svg',
     supplyConfig: null,
+    isVerified: false,
   },
 };
 
