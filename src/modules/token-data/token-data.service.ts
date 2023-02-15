@@ -2,13 +2,18 @@ import { ConsoleLogger, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as pact from 'pact-lang-api';
+import { BLACKLISTED_TOKENS, TOKENS } from 'src/data/tokens';
 import { extractDecimal } from 'src/utils/pact-data.utils';
 import { TokenData, TokenDataDocument } from './schemas/token-data.schema';
+import { Pair, Token } from './types';
 
 @Injectable()
 export class TokenDataService {
   private readonly logger = new ConsoleLogger(TokenDataService.name);
-
+  private readonly NETWORK_ID = process.env.CHAINWEB_NETWORK_ID;
+  private readonly BASE_URL = process.env.CHAINWEB_NODE_URL;
+  private readonly CHAIN_ID = process.env.CHAIN_ID;
+  private readonly URL = `${this.BASE_URL}/chainweb/0.0/${this.NETWORK_ID}/chain/${this.CHAIN_ID}/pact`;
   constructor(
     @InjectModel(TokenData.name)
     private tokenDataModel: Model<TokenDataDocument>,
@@ -100,5 +105,117 @@ export class TokenDataService {
 
   async getTokenData(tokenId: String) {
     return await this.tokenDataModel.find({ tokenId }).exec();
+  }
+
+  async getPairs(): Promise<Pair[]> {
+    try {
+      const pactResponse = await pact.fetch.local(
+        {
+          pactCode: `(kaddex.exchange.get-pairs)`,
+          meta: pact.lang.mkMeta(
+            '',
+            this.CHAIN_ID.toString(),
+            0.0000001,
+            150000,
+            Math.round(new Date().getTime() / 1000) - 10,
+            600,
+          ),
+        },
+        this.URL,
+      );
+      const {
+        result: { data },
+      }: { result: { data: string[] } } = pactResponse;
+
+      const result: Pair[] = [];
+
+      data.forEach((pairString) => {
+        const tokenCodes = pairString.split(':');
+        if (
+          !BLACKLISTED_TOKENS.some(
+            (x) => x === tokenCodes[0] || x === tokenCodes[1],
+          )
+        ) {
+          const pairObject: Pair = {
+            code: pairString,
+            token1: getTokenObject(tokenCodes[0]),
+            token2: getTokenObject(tokenCodes[1]),
+          };
+          result.push(pairObject);
+        }
+      });
+
+      return result;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getTokens(): Promise<Token[]> {
+    try {
+      const pactResponse = await pact.fetch.local(
+        {
+          pactCode: `(kaddex.exchange.get-pairs)`,
+          meta: pact.lang.mkMeta(
+            '',
+            this.CHAIN_ID.toString(),
+            0.0000001,
+            150000,
+            Math.round(new Date().getTime() / 1000) - 10,
+            600,
+          ),
+        },
+        this.URL,
+      );
+      const {
+        result: { data },
+      }: { result: { data: string[] } } = pactResponse;
+
+      const result: Token[] = [];
+
+      data.forEach((pairString) => {
+        const tokenCodes = pairString.split(':');
+        const token1 = tokenCodes[0];
+        const token2 = tokenCodes[1];
+
+        if (
+          !result.some((x) => x.code === token1) &&
+          !BLACKLISTED_TOKENS.some((x) => x === token1)
+        ) {
+          result.push(getTokenObject(token1));
+        }
+        if (
+          !result.some((x) => x.code === token2) &&
+          !BLACKLISTED_TOKENS.some((x) => x === token2)
+        ) {
+          result.push(getTokenObject(token2));
+        }
+      });
+
+      return result;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+}
+
+function getTokenObject(tokenCode: string): Token {
+  const verifiedToken = TOKENS[tokenCode];
+  if (verifiedToken) {
+    return {
+      code: tokenCode,
+      logoUrl: verifiedToken.logoURL,
+      name: verifiedToken.extendedName,
+      symbol: verifiedToken.name,
+      isVerified: verifiedToken.isVerified,
+    };
+  } else {
+    return {
+      code: tokenCode,
+      logoUrl: null,
+      name: null,
+      symbol: null,
+      isVerified: false,
+    };
   }
 }
