@@ -36,8 +36,8 @@ export class DexDataController {
   async getTickers() {
     const volumes = await this.dailyVolumeService.findAll(
       'kswap.exchange.SWAP',
-      moment().format('YYYY-MM-DD'),
-      moment().format('YYYY-MM-DD'),
+      moment().subtract(1, 'days').format('YYYY-MM-DD'),
+      moment().subtract(1, 'days').format('YYYY-MM-DD'),
     );
 
     let result: TickerDto[] = [];
