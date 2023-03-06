@@ -16,6 +16,7 @@ import { DexDataModule } from './modules/dex-data/dex-data.module';
 import { ChainDataModule } from './modules/chain-data/chain-data.module';
 import { TokenDataModule } from './modules/token-data/token-data.module';
 import { MempoolModule } from './modules/mempool/mempool.module';
+import { LiquidityPoolsModule } from './modules/liquidity-pools/liquidity-pools.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { MempoolModule } from './modules/mempool/mempool.module';
     ChainDataModule,
     TokenDataModule,
     MempoolModule,
+    LiquidityPoolsModule,
   ],
   controllers: [AppController],
   providers: [

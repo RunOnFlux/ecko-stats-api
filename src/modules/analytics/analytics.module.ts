@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DailyTvlModule } from '../daily-tvl/daily-tvl.module';
 import { DailyVolumeModule } from '../daily-volume/daily-volume.module';
-import { DexDataModule } from '../dex-data/dex-data.module';
 import { TokenCandlesModule } from '../token-candles/token-candles.module';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsImporter } from './analytics.importer';
@@ -22,5 +21,6 @@ import { Analytics, AnalyticsSchema } from './schemas/analytics.schema';
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService, AnalyticsImporter],
+  exports: [AnalyticsService],
 })
 export class AnalyticsModule {}
