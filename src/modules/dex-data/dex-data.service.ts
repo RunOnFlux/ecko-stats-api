@@ -131,6 +131,7 @@ export class DexDataService {
       }
 
       const item: TickerDto = {
+        pair: pair.pool_id,
         baseId: baseTokenData.code,
         baseName: baseTokenData.extendedName,
         baseSymbol: baseTokenData.name,
@@ -149,12 +150,138 @@ export class DexDataService {
     return result;
   }
 
+  private async computeTickersPairsDataNew(
+    volumes: any,
+    kdaUsdPrice: number,
+  ): Promise<TickerDto[]> {
+    const result: TickerDto[] = [];
+    const pairs = this.getPairs();
+    const liquidities = await this.connection
+      .collection(LIQUIDITY_POOLS_COLLECTION_NAME)
+      .find({
+        chain: Number(this.CHAIN_ID),
+      })
+      .toArray();
+    for (const pair of pairs) {
+      let pairTokensCode = pair.pool_id.split(':');
+      if (pairTokensCode[0] === 'coin') {
+        pairTokensCode = pairTokensCode.reverse();
+      }
+      const baseTokenData = TOKENS[pairTokensCode[0]];
+      const targetTokenData = TOKENS[pairTokensCode[1]];
+
+      const baseTokenCodeSplitted = baseTokenData.code.split('.');
+      const targetTokenCodeSplitted = targetTokenData.code.split('.');
+
+      const baseTokenDataNamespace =
+        baseTokenCodeSplitted.length > 1 ? baseTokenCodeSplitted[0] : null;
+      const baseTokenDataName =
+        baseTokenCodeSplitted.length > 1
+          ? baseTokenCodeSplitted[1]
+          : baseTokenCodeSplitted[0];
+
+      const targetTokenDataNamespace =
+        targetTokenCodeSplitted.length > 1 ? targetTokenCodeSplitted[0] : null;
+      const targetTokenDataName =
+        targetTokenCodeSplitted.length > 1
+          ? targetTokenCodeSplitted[1]
+          : targetTokenCodeSplitted[0];
+
+      // filter volumes on both side foreach pair
+      const pairVolumes = _.filter(volumes, (volume) => {
+        return (
+          (volume.tokenFromNamespace === baseTokenDataNamespace &&
+            volume.tokenFromName === baseTokenDataName &&
+            volume.tokenToNamespace === targetTokenDataNamespace &&
+            volume.tokenToName === targetTokenDataName) ||
+          (volume.tokenFromNamespace === targetTokenDataNamespace &&
+            volume.tokenFromName === targetTokenDataName &&
+            volume.tokenToNamespace === baseTokenDataNamespace &&
+            volume.tokenToName === baseTokenDataName)
+        );
+      });
+
+      let baseTokenVolume = 0;
+      let targetTokenVolume = 0;
+
+      pairVolumes.forEach((volume) => {
+        if (
+          volume.tokenFromNamespace === baseTokenDataNamespace &&
+          volume.tokenFromName === baseTokenDataName
+        ) {
+          baseTokenVolume += volume.tokenFromVolume;
+        }
+
+        if (
+          volume.tokenToNamespace === baseTokenDataNamespace &&
+          volume.tokenToName === baseTokenDataName
+        ) {
+          baseTokenVolume += volume.tokenToVolume;
+        }
+
+        if (
+          volume.tokenFromNamespace === targetTokenDataNamespace &&
+          volume.tokenFromName === targetTokenDataName
+        ) {
+          targetTokenVolume += volume.tokenFromVolume;
+        }
+
+        if (
+          volume.tokenToNamespace === targetTokenDataNamespace &&
+          volume.tokenToName === targetTokenDataName
+        ) {
+          targetTokenVolume += volume.tokenToVolume;
+        }
+      });
+
+      const liquidity = liquidities.find(
+        (x) =>
+          (x.tokenFrom === baseTokenData.code &&
+            x.tokenTo === targetTokenData.code) ||
+          (x.tokenFrom === targetTokenData.code &&
+            x.tokenTo === baseTokenData.code),
+      );
+
+      let liquidityInUsd = 0;
+      let lastPrice = 0;
+      if (liquidity && liquidity.tokenFromTVL && liquidity.tokenToTVL) {
+        liquidityInUsd =
+          liquidity.tokenFrom === 'coin'
+            ? liquidity.tokenFromTVL * kdaUsdPrice
+            : liquidity.tokenToTVL * kdaUsdPrice;
+
+        lastPrice =
+          liquidity.tokenFrom === 'coin'
+            ? liquidity.tokenFromTVL / liquidity.tokenToTVL
+            : liquidity.tokenToTVL / liquidity.tokenFromTVL;
+      }
+
+      const item: TickerDto = {
+        pair: pair.pool_id,
+        baseId: baseTokenData.code,
+        baseName: baseTokenData.extendedName,
+        baseSymbol: baseTokenData.name,
+        quoteId: targetTokenData.code,
+        quoteName: targetTokenData.extendedName,
+        quoteSymbol: targetTokenData.name,
+        baseVolume: baseTokenVolume,
+        quoteVolume: targetTokenVolume,
+        lastPrice,
+        liquidityInUsd: liquidityInUsd * 2,
+      };
+
+      result.push(item);
+    }
+
+    return result;
+  }
+
   async getCGTickers(
     volumes: any,
     kdaUsdPrice: number,
   ): Promise<CoingeckoTickerDto[]> {
     const result: CoingeckoTickerDto[] = [];
-    const computedPairsData = await this.computeTickersPairsData(
+    const computedPairsData = await this.computeTickersPairsDataNew(
       volumes,
       kdaUsdPrice,
     );

@@ -1,4 +1,5 @@
 export class TickerDto {
+  pair: string;
   baseId: string;
   baseName: string;
   baseSymbol: string;
