@@ -12,8 +12,6 @@ import {
 } from './dto/analytics.dto';
 import { Analytics, AnalyticsDocument } from './schemas/analytics.schema';
 import { extractDecimal, extractTime } from 'src/utils/pact-data.utils';
-import { CMMTickerResponseDto } from '../dex-data/dto/CMMTicker.dto';
-import { TickerDto } from '../dex-data/dto/ticker.dto';
 import * as _ from 'lodash';
 import { TokenStatsResponseDto } from './dto/token-stats-response.dto';
 import { getPercentage } from 'src/utils/math.utils';
@@ -464,7 +462,7 @@ export class AnalyticsService {
   }
 
   getAggregatedPairVolumes(volumes: any[], pairsFromExchange: string[]) {
-    let result: any = {};
+    const result: any = {};
 
     pairsFromExchange.forEach((pair) => {
       const [baseTokenCode, targetTokenCode] = pair.split(':');
@@ -549,7 +547,7 @@ export class AnalyticsService {
     tickersInitialDailyVolume: any,
     tickersFinalDailyVolume: any,
   ) {
-    let result: TokenStatsResponseDto = {};
+    const result: TokenStatsResponseDto = {};
 
     const currentTokensVolume24 = getTokensVolume(tickersCurrentVolume24);
     const currentTokensVolumeInitial = getTokensVolume(
@@ -577,7 +575,7 @@ export class AnalyticsService {
 }
 
 function getTokensVolume(tickers: any) {
-  let result = {};
+  const result = {};
 
   const groupedByBaseCurrency = _.groupBy(
     tickers,

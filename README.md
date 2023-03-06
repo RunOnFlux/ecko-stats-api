@@ -40,4 +40,8 @@ npm run console import:analytics-burned
 npm run console import:analytics-liquidity-mining
 npm run console import:analytics-dao-treasury
 npm run console import:analytics-all
+
+# seed liquidity-pools data
+npm run console import:all-liquidity-pools
+npm run console import:liquidity-pools <pairCode>
 ```

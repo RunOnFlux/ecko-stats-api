@@ -1,11 +1,17 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 import * as _ from 'lodash';
 import * as pact from 'pact-lang-api';
+import * as moment from 'moment';
 import { PAIR_TOKENS, TOKENS } from 'src/data/tokens';
 import { extractDecimal } from 'src/utils/pact-data.utils';
+import { TVL_COLLECTION_NAME } from '../daily-tvl/schemas/daily-tvl.schema';
 import { CMMTickerResponseDto } from './dto/CMMTicker.dto';
 import { PairDto } from './dto/pair.dto';
+import { CoingeckoTickerDto } from './dto/CoingeckoTicker.dto';
 import { TickerDto } from './dto/ticker.dto';
+import { LIQUIDITY_POOLS_COLLECTION_NAME } from '../liquidity-pools/schemas/liquidity-pools.schema';
 
 @Injectable()
 export class DexDataService {
@@ -15,7 +21,7 @@ export class DexDataService {
   private readonly CHAIN_ID = process.env.CHAIN_ID;
   private readonly URL = `${this.BASE_URL}/chainweb/0.0/${this.NETWORK_ID}/chain/${this.CHAIN_ID}/pact`;
 
-  constructor() {}
+  constructor(@InjectConnection() private connection: Connection) {}
 
   getPairs(): PairDto[] {
     const result: PairDto[] = Object.values(PAIR_TOKENS).map((x) => ({
@@ -27,11 +33,20 @@ export class DexDataService {
     return result;
   }
 
-  private computeTickersPairsData(volumes: any): CMMTickerResponseDto {
-    const result = new CMMTickerResponseDto();
+  private async computeTickersPairsData(
+    volumes: any,
+    kdaUsdPrice: number,
+  ): Promise<TickerDto[]> {
+    const result: TickerDto[] = [];
     const pairs = this.getPairs();
-    pairs.forEach((x) => {
-      const pairTokensCode = x.pool_id.split(':');
+    const liquidities = await this.connection
+      .collection(LIQUIDITY_POOLS_COLLECTION_NAME)
+      .find({
+        chain: Number(this.CHAIN_ID),
+      })
+      .toArray();
+    for (const pair of pairs) {
+      const pairTokensCode = pair.pool_id.split(':');
       const baseTokenData = TOKENS[pairTokensCode[0]];
       const targetTokenData = TOKENS[pairTokensCode[1]];
 
@@ -99,42 +114,89 @@ export class DexDataService {
         }
       });
 
-      result[`${baseTokenData.code}_${targetTokenData.code}`] = {
-        base_id: baseTokenData.code,
-        base_name: baseTokenData.extendedName,
-        base_symbol: baseTokenData.name,
-        quote_id: targetTokenData.code,
-        quote_name: targetTokenData.extendedName,
-        quote_symbol: targetTokenData.name,
-        base_volume: baseTokenVolume,
-        quote_volume: targetTokenVolume,
-        last_price: targetTokenVolume / baseTokenVolume,
+      const liquidity = liquidities.find(
+        (x) =>
+          (x.tokenFrom === baseTokenData.code &&
+            x.tokenTo === targetTokenData.code) ||
+          (x.tokenFrom === targetTokenData.code &&
+            x.tokenTo === baseTokenData.code),
+      );
+
+      let liquidityInUsd = 0;
+      if (liquidity && liquidity.tokenFromTVL && liquidity.tokenToTVL) {
+        liquidityInUsd =
+          liquidity.tokenFrom === 'coin'
+            ? liquidity.tokenFromTVL * kdaUsdPrice
+            : liquidity.tokenToTVL * kdaUsdPrice;
+      }
+
+      const item: TickerDto = {
+        baseId: baseTokenData.code,
+        baseName: baseTokenData.extendedName,
+        baseSymbol: baseTokenData.name,
+        quoteId: targetTokenData.code,
+        quoteName: targetTokenData.extendedName,
+        quoteSymbol: targetTokenData.name,
+        baseVolume: baseTokenVolume,
+        quoteVolume: targetTokenVolume,
+        lastPrice: targetTokenVolume / baseTokenVolume,
+        liquidityInUsd: liquidityInUsd * 2,
       };
-    });
+
+      result.push(item);
+    }
 
     return result;
   }
 
-  getCGTickers(volumes: any): TickerDto[] {
-    const result: TickerDto[] = [];
-    const computedPairsData = this.computeTickersPairsData(volumes);
-    Object.keys(computedPairsData).forEach((key) => {
+  async getCGTickers(
+    volumes: any,
+    kdaUsdPrice: number,
+  ): Promise<CoingeckoTickerDto[]> {
+    const result: CoingeckoTickerDto[] = [];
+    const computedPairsData = await this.computeTickersPairsData(
+      volumes,
+      kdaUsdPrice,
+    );
+    computedPairsData.map((item) => {
       result.push({
-        ticker_id: `${computedPairsData[key].base_symbol}_${computedPairsData[key].quote_symbol}`,
-        base_currency: computedPairsData[key].base_symbol,
-        target_currency: computedPairsData[key].quote_symbol,
-        base_volume: computedPairsData[key].base_volume,
-        target_volume: computedPairsData[key].quote_volume,
-        last_price: computedPairsData[key].last_price,
-        pool_id: `${computedPairsData[key].base_id}:${computedPairsData[key].quote_id}`,
+        ticker_id: `${item.baseSymbol}_${item.quoteSymbol}`,
+        base_currency: item.baseSymbol,
+        target_currency: item.quoteSymbol,
+        base_volume: item.baseVolume,
+        target_volume: item.quoteVolume,
+        last_price: item.lastPrice,
+        pool_id: `${item.baseId}:${item.quoteId}`,
+        liquidity_in_usd: item.liquidityInUsd,
       });
     });
 
     return result;
   }
 
-  getCMMTickers(volumes: any): CMMTickerResponseDto {
-    return this.computeTickersPairsData(volumes);
+  async getCMMTickers(
+    volumes: any,
+    kdaUsdPrice: number,
+  ): Promise<CMMTickerResponseDto> {
+    const result = new CMMTickerResponseDto();
+    const computedPairsData = await this.computeTickersPairsData(
+      volumes,
+      kdaUsdPrice,
+    );
+    computedPairsData.map((item) => {
+      result[`${item.baseId}_${item.quoteId}`] = {
+        base_id: item.baseId,
+        base_name: item.baseName,
+        base_symbol: item.baseSymbol,
+        quote_id: item.quoteId,
+        quote_name: item.quoteName,
+        quote_symbol: item.quoteSymbol,
+        base_volume: item.baseVolume,
+        quote_volume: item.quoteVolume,
+        last_price: item.lastPrice,
+      };
+    });
+    return result;
   }
 
   async getKDXCirculatingSupply() {

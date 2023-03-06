@@ -1,15 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { CacheTTL, Controller, Get } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import * as moment from 'moment';
 import { DailyVolumesService } from '../daily-volume/daily-volume.service';
 import { DexDataService } from './dex-data.service';
-import {
-  CMMTickerDto,
-  CMMTickerDtoInterface,
-  CMMTickerResponseDto,
-} from './dto/CMMTicker.dto';
+import { CMMTickerResponseDto } from './dto/CMMTicker.dto';
 import { PairDto } from './dto/pair.dto';
-import { TickerDto } from './dto/ticker.dto';
+import { CoingeckoTickerDto } from './dto/CoingeckoTicker.dto';
+import { CoingeckoService } from '../coingecko/coingecko.service';
 
 @Controller('dex-data')
 @ApiTags('Dex Data')
@@ -17,6 +14,7 @@ export class DexDataController {
   constructor(
     private readonly dexDataService: DexDataService,
     private readonly dailyVolumeService: DailyVolumesService,
+    private readonly coingeckoService: CoingeckoService,
   ) {}
 
   @Get('pairs')
@@ -29,9 +27,10 @@ export class DexDataController {
   }
 
   @Get('tickers')
+  @CacheTTL(30)
   @ApiOperation({ summary: `Get tickers data` })
   @ApiOkResponse({
-    type: [TickerDto],
+    type: [CoingeckoTickerDto],
   })
   async getTickers() {
     const volumes = await this.dailyVolumeService.findAll(
@@ -40,10 +39,11 @@ export class DexDataController {
       moment().subtract(1, 'days').format('YYYY-MM-DD'),
     );
 
-    let result: TickerDto[] = [];
+    let result: CoingeckoTickerDto[] = [];
 
     if (volumes && volumes.length) {
-      result = this.dexDataService.getCGTickers(volumes);
+      const kdaUsdPrice = await this.coingeckoService.getKdaUsdPrice();
+      result = await this.dexDataService.getCGTickers(volumes, kdaUsdPrice);
     }
 
     return result;
@@ -64,7 +64,8 @@ export class DexDataController {
     let result: CMMTickerResponseDto;
 
     if (volumes && volumes.length) {
-      result = this.dexDataService.getCMMTickers(volumes);
+      const kdaUsdPrice = await this.coingeckoService.getKdaUsdPrice();
+      result = await this.dexDataService.getCMMTickers(volumes, kdaUsdPrice);
     }
 
     return result;

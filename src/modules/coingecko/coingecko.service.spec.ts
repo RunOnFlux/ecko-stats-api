@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DailyVolumesService } from './daily-volume.service';
+import { CoingeckoService } from './coingecko.service';
 
-describe('DailyVolumeService', () => {
-  let service: DailyVolumesService;
+describe('CoingeckoService', () => {
+  let service: CoingeckoService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DailyVolumesService],
+      providers: [CoingeckoService],
     }).compile();
 
-    service = module.get<DailyVolumesService>(DailyVolumesService);
+    service = module.get<CoingeckoService>(CoingeckoService);
   });
 
   it('should be defined', () => {
