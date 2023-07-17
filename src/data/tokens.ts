@@ -234,7 +234,7 @@ export const TOKENS = {
     extendedName: 'Kapy',
     logoURL: 'https://swap.kaddex.com/images/crypto/kapy.svg',
     supplyConfig: null,
-    isVerified: true,
+    isVerified: false,
   },
   'free.jodie-token': {
     name: 'JDE',
@@ -258,7 +258,7 @@ export const TOKENS = {
     extendedName: 'KAYC',
     logoURL: 'https://swap.kaddex.com/images/crypto/kayc.svg',
     supplyConfig: null,
-    isVerified: true,
+    isVerified: false,
   },
   'free.corona-token': {
     name: 'CRNA',
