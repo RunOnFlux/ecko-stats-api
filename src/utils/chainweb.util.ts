@@ -13,7 +13,7 @@ export const getApiBalance = (apiBalance) => {
   return balance;
 };
 
-export const CHAINWEB_ESTATS_URL = 'http://137.184.182.255:4444/txs/events';
+export const CHAINWEB_ESTATS_URL = 'http://164.92.80.137:4444/txs/events';
 
 export const isKdaCoin = (refData: IRefData): boolean => {
   return refData.refName.namespace === null && refData.refName.name === 'coin';
