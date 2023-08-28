@@ -107,7 +107,7 @@ export class DailyTvlService {
   ): Promise<any> {
     this.logger.log('START TVL IMPORT');
     const limit = 100;
-    let offset = 0;
+    let chainwebNext: string = null;
     let analyzingData: DailyTVLDto[] = [];
 
     const dayStartString = dayStart && moment(dayStart).format('YYYY-MM-DD');
@@ -122,15 +122,22 @@ export class DailyTvlService {
         const eventsData: any = await this.httpService
           .get(CHAINWEB_ESTATS_URL, {
             params: {
-              name: eventName,
+              search: eventName,
               limit,
-              offset,
+              next: chainwebNext !== null ? chainwebNext : undefined,
             },
           })
-          .pipe(map((response) => response.data));
+          .pipe(
+            map((response) => {
+              chainwebNext = response.headers['chainweb-next'];
+              return response.data;
+            }),
+          );
+
         const eventsStat: IKSwapExchangeUPDATE[] = await lastValueFrom(
-          eventsData,
+          eventsData.data,
         );
+
         hasResult = eventsStat?.length > 0;
         for (const stat of eventsStat) {
           const {
@@ -237,7 +244,6 @@ export class DailyTvlService {
           }
         }
         failedAttempt = 0;
-        offset += limit;
       } catch (err) {
         this.logger.error(err);
         // continue or try again?
@@ -251,7 +257,7 @@ export class DailyTvlService {
         } else {
           this.logger.log(`RESTORE FAILED ATTEMPT AND SKIP THIS PAGE`);
           failedAttempt = 0;
-          offset += limit;
+          // offset += limit;
         }
       }
     } while (

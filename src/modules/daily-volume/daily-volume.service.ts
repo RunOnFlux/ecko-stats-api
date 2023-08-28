@@ -224,7 +224,8 @@ export class DailyVolumesService {
   ): Promise<any> {
     this.logger.log('START VOLUME IMPORT');
     const limit = 100;
-    let offset = 0;
+    let chainwebNext: string = null;
+
     let statFounded = null;
     let analyzingData: DailyVolumeDto[] = [];
 
@@ -242,15 +243,22 @@ export class DailyVolumesService {
         const eventsData: any = await this.httpService
           .get(CHAINWEB_ESTATS_URL, {
             params: {
-              name: eventName,
+              search: eventName,
               limit,
-              offset,
+              next: chainwebNext !== null ? chainwebNext : undefined,
             },
           })
-          .pipe(map((response) => response.data));
+          .pipe(
+            map((response) => {
+              chainwebNext = response.headers['chainweb-next'];
+              return response.data;
+            }),
+          );
+
         const eventsStat: IKSwapExchangeSWAP[] = await lastValueFrom(
           eventsData,
         );
+
         hasResult = eventsStat?.length > 0;
         for (const stat of eventsStat) {
           const {
@@ -375,11 +383,10 @@ export class DailyVolumesService {
           }
         }
         failedAttempt = 0;
-        offset += limit;
       } catch (err) {
         this.logger.error(err);
         this.logger.debug(statFounded);
-        this.logger.debug({ limit, offset });
+        this.logger.debug({ limit, chainwebNext });
         // continue or try again?
         if (failedAttempt < 5) {
           failedAttempt += 1;
@@ -391,7 +398,7 @@ export class DailyVolumesService {
         } else {
           this.logger.log(`RESTORE FAILED ATTEMPT AND SKIP THIS PAGE`);
           failedAttempt = 0;
-          offset += limit;
+          //offset += limit;
         }
       }
     } while (
