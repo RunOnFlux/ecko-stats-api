@@ -158,7 +158,7 @@ export class TokenCandlesService {
           );
 
         const eventsStat: IKSwapExchangeSWAP[] = await lastValueFrom(
-          eventsData.data,
+          eventsData,
         );
 
         hasResult = eventsStat?.length > 0;
