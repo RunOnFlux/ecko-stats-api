@@ -128,7 +128,8 @@ export class TokenCandlesService {
   async tokenCandlesImport(dayStart?: Date, dayEnd?: Date): Promise<void> {
     this.logger.log('CANDLES IMPORT START');
     const limit = 100;
-    let offset = 0;
+    let chainwebNext: string = null;
+
     let candleFounded: TokenCandle = null;
     let processingCandles: TokenCandle[] = [];
 
@@ -144,15 +145,22 @@ export class TokenCandlesService {
         const eventsData: any = await this.httpService
           .get(CHAINWEB_ESTATS_URL, {
             params: {
-              name: 'kaddex.exchange.SWAP',
+              search: 'kaddex.exchange.SWAP',
               limit,
-              offset,
+              next: chainwebNext !== null ? chainwebNext : undefined,
             },
           })
-          .pipe(map((response) => response.data));
+          .pipe(
+            map((response) => {
+              chainwebNext = response.headers['chainweb-next'];
+              return response.data;
+            }),
+          );
+
         const eventsStat: IKSwapExchangeSWAP[] = await lastValueFrom(
           eventsData,
         );
+
         hasResult = eventsStat?.length > 0;
         for (const stat of eventsStat) {
           const {
@@ -280,13 +288,12 @@ export class TokenCandlesService {
             lastDay = groupedByPair[key] && groupedByPair[key][0]?.dayString;
           }
         }
-        offset += limit;
       } catch (err) {
         this.logger.error(err);
         this.logger.debug(candleFounded);
-        this.logger.debug({ limit, offset });
+        this.logger.debug({ limit, chainwebNext });
         // continue or try again?
-        offset += limit;
+        //offset += limit;
       }
     } while (
       hasResult &&
