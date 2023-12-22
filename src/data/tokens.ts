@@ -153,6 +153,17 @@ export const PAIR_TOKENS = {
       code: 'free.docu',
     },
   },
+  'coin:n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD': {
+    name: 'coin:n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'zUSD',
+      code: 'n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -275,6 +286,14 @@ export const TOKENS = {
     logoURL: 'https://swap.kaddex.com/images/crypto/docushield.svg',
     supplyConfig: null,
     isVerified: false,
+  },
+  'n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD': {
+    name: 'zUSD',
+    code: 'n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD',
+    extendedName: 'zUSD',
+    logoURL: 'https://swap.kaddex.com/images/crypto/zUSD.svg',
+    supplyConfig: null,
+    isVerified: true,
   },
 };
 
