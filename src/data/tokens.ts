@@ -164,6 +164,17 @@ export const PAIR_TOKENS = {
       code: 'n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD',
     },
   },
+  'coin:free.cyberfly_token': {
+    name: 'coin:free.cyberfly_token',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'CFLY',
+      code: 'free.cyberfly_token',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -292,6 +303,14 @@ export const TOKENS = {
     code: 'n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD',
     extendedName: 'zUSD',
     logoURL: 'https://swap.kaddex.com/images/crypto/zUSD.svg',
+    supplyConfig: null,
+    isVerified: true,
+  },
+  'free.cyberfly_token': {
+    name: 'CFLY',
+    code: 'free.cyberfly_token',
+    extendedName: 'CFLY',
+    logoURL: 'https://swap.kaddex.com/images/crypto/cfly.svg',
     supplyConfig: null,
     isVerified: true,
   },
