@@ -175,6 +175,17 @@ export const PAIR_TOKENS = {
       code: 'free.cyberfly_token',
     },
   },
+  'coin:n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron': {
+    name: 'coin:n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'HERON',
+      code: 'n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -311,6 +322,14 @@ export const TOKENS = {
     code: 'free.cyberfly_token',
     extendedName: 'CFLY',
     logoURL: 'https://swap.kaddex.com/images/crypto/cfly.svg',
+    supplyConfig: null,
+    isVerified: true,
+  },
+  'n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron': {
+    name: 'HERON',
+    code: 'n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron',
+    extendedName: 'HERON',
+    logoURL: 'https://swap.kaddex.com/images/crypto/heron.png',
     supplyConfig: null,
     isVerified: true,
   },
