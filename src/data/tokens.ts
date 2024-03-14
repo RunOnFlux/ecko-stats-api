@@ -186,6 +186,17 @@ export const PAIR_TOKENS = {
       code: 'n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron',
     },
   },
+  'coin:free.maga': {
+    name: 'coin:free.maga',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'MAGA',
+      code: 'free.maga',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -330,6 +341,14 @@ export const TOKENS = {
     code: 'n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron',
     extendedName: 'HERON',
     logoURL: 'https://swap.kaddex.com/images/crypto/heron.png',
+    supplyConfig: null,
+    isVerified: true,
+  },
+  'free.maga': {
+    name: 'MAGA',
+    code: 'free.maga',
+    extendedName: 'MAGA',
+    logoURL: 'https://swap.kaddex.com/images/crypto/maga.png',
     supplyConfig: null,
     isVerified: true,
   },
