@@ -292,7 +292,7 @@ export const TOKENS = {
     name: 'ARKD',
     code: 'arkade.token',
     extendedName: 'ARKD',
-    logoURL: 'https://swap.ecko.finance/images/crypto/ark.svg',
+    logoURL: 'https://swap.ecko.finance/images/crypto/ark.png',
     supplyConfig: null,
     isVerified: true,
   },
