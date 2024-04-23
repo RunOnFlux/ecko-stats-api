@@ -197,6 +197,17 @@ export const PAIR_TOKENS = {
       code: 'free.maga',
     },
   },
+  'coin:free.finux': {
+    name: 'coin:free.finux',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'FINUX',
+      code: 'free.finux',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -349,6 +360,14 @@ export const TOKENS = {
     code: 'free.maga',
     extendedName: 'MAGA',
     logoURL: 'https://swap.ecko.finance/images/crypto/maga.png',
+    supplyConfig: null,
+    isVerified: true,
+  },
+  'free.finux': {
+    name: 'FINUX',
+    code: 'free.finux',
+    extendedName: 'FINUX',
+    logoURL: 'https://swap.ecko.finance/images/crypto/finux.png',
     supplyConfig: null,
     isVerified: true,
   },
