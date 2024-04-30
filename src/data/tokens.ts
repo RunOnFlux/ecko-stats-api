@@ -208,6 +208,17 @@ export const PAIR_TOKENS = {
       code: 'free.finux',
     },
   },
+  'coin:free.crankk01': {
+    name: 'coin:free.crankk01',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'CRKK',
+      code: 'free.crankk01',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -368,6 +379,14 @@ export const TOKENS = {
     code: 'free.finux',
     extendedName: 'FINUX',
     logoURL: 'https://swap.ecko.finance/images/crypto/finux.png',
+    supplyConfig: null,
+    isVerified: true,
+  },
+  'free.crankk01': {
+    name: 'CRKK',
+    code: 'free.crankk01',
+    extendedName: 'CRKK',
+    logoURL: 'https://swap.ecko.finance/images/crypto/crankk.png',
     supplyConfig: null,
     isVerified: true,
   },
