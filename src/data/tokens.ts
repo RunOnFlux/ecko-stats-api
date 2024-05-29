@@ -219,6 +219,17 @@ export const PAIR_TOKENS = {
       code: 'free.crankk01',
     },
   },
+  'coin:n_582fed11af00dc626812cd7890bb88e72067f28c.bro': {
+    name: 'coin:n_582fed11af00dc626812cd7890bb88e72067f28c.bro',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'BRO',
+      code: 'n_582fed11af00dc626812cd7890bb88e72067f28c.bro',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -387,6 +398,14 @@ export const TOKENS = {
     code: 'free.crankk01',
     extendedName: 'CRKK',
     logoURL: 'https://swap.ecko.finance/images/crypto/crankk.png',
+    supplyConfig: null,
+    isVerified: true,
+  },
+  'n_582fed11af00dc626812cd7890bb88e72067f28c.bro': {
+    name: 'BRO',
+    code: 'n_582fed11af00dc626812cd7890bb88e72067f28c.bro',
+    extendedName: 'BRO',
+    logoURL: 'https://swap.ecko.finance/images/crypto/bro.png',
     supplyConfig: null,
     isVerified: true,
   },
