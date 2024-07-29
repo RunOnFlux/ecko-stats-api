@@ -230,6 +230,17 @@ export const PAIR_TOKENS = {
       code: 'n_582fed11af00dc626812cd7890bb88e72067f28c.bro',
     },
   },
+  'coin:n_625e9938ae84bdb7d190f14fc283c7a6dfc15d58.ktoshi': {
+    name: 'coin:n_625e9938ae84bdb7d190f14fc283c7a6dfc15d58.ktoshi',
+    token0: {
+      name: 'KDA',
+      code: 'coin',
+    },
+    token1: {
+      name: 'KTO',
+      code: 'n_625e9938ae84bdb7d190f14fc283c7a6dfc15d58.ktoshi',
+    },
+  },
 };
 
 export const TOKENS = {
@@ -406,6 +417,14 @@ export const TOKENS = {
     code: 'n_582fed11af00dc626812cd7890bb88e72067f28c.bro',
     extendedName: 'BRO',
     logoURL: 'https://swap.ecko.finance/images/crypto/bro.png',
+    supplyConfig: null,
+    isVerified: true,
+  },
+  'n_625e9938ae84bdb7d190f14fc283c7a6dfc15d58.ktoshi': {
+    name: 'KTO',
+    code: 'n_625e9938ae84bdb7d190f14fc283c7a6dfc15d58.ktoshi',
+    extendedName: 'KTO',
+    logoURL: 'https://swap.ecko.finance/images/crypto/ktoshi.png',
     supplyConfig: null,
     isVerified: true,
   },
