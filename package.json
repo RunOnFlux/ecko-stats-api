@@ -35,7 +35,7 @@
     "class-validator": "^0.13.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
-    "mongoose": "^6.2.1",
+    "mongoose": "^8.8.3",
     "nestjs-console": "^7.0.1",
     "pact-lang-api": "^4.3.5",
     "reflect-metadata": "^0.1.13",
