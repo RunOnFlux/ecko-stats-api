@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as pact from 'pact-lang-api';
 import { ChainData, ChainDataDocument } from './schemas/chain-data.schema';
+import { whiteListedTokens } from './fixture/tokens';
 
 @Injectable()
 export class ChainDataService {
@@ -14,7 +15,15 @@ export class ChainDataService {
   ) {}
 
   async getChainData() {
-    return await this.chainDataModel.find({}, { _id: 0 });
+    const data = await this.chainDataModel.find({}, { _id: 0 });
+    if (
+      !data[0] ||
+      !data[0].fungibleTokens?.length ||
+      !data[0].fungibleTokens[0]?.length
+    ) {
+      return whiteListedTokens;
+    }
+    return data;
   }
 
   async fetchChainsFungibleTokens() {
@@ -45,7 +54,7 @@ export class ChainDataService {
               '',
               chainId.toString(),
               0.0000001,
-              150000,
+              15000000,
               Math.round(new Date().getTime() / 1000) - 10,
               600,
             ),
@@ -60,6 +69,7 @@ export class ChainDataService {
           fungibleTokens.push(chainTokens);
         } else {
           this.logger.warn(`Unable to fetch for chain ${chainId}`);
+          this.logger.warn(pactResponse?.result?.error?.message);
           fungibleTokens.push([]);
         }
       } catch (error) {
