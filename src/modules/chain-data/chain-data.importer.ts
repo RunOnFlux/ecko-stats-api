@@ -16,7 +16,7 @@ export class ChainDataImporter {
   @Command({
     command: 'import:chain-data',
   })
-  @Cron(CronExpression.EVERY_2_HOURS)
+  @Cron(CronExpression.EVERY_12_HOURS)
   async chainDataImportCommand() {
     await this.chainDataService.fetchChainsFungibleTokens();
   }
