@@ -26,10 +26,40 @@ export class ChainDataService {
     return data;
   }
 
+  async isTokenWorking(token: string, chainId) {
+    const isTokenWorking = await Pact.fetch.local(
+      {
+        pactCode: `(${token}.get-balance "k:alice")`,
+        meta: Pact.lang.mkMeta(
+          '',
+          chainId.toString(),
+          0.0000001,
+          15000000,
+          Math.round(new Date().getTime() / 1000) - 10,
+          600,
+        ),
+      },
+      `${process.env.CHAINWEB_NODE_URL}/chainweb/0.0/${process.env.CHAINWEB_NETWORK_ID}/chain/${chainId}/pact`,
+    );
+    if (
+      isTokenWorking?.result?.status === 'success' ||
+      isTokenWorking?.result?.error?.message?.includes('row not found') ||
+      isTokenWorking?.result?.error?.message?.includes(
+        'No value found in table',
+      )
+    ) {
+      this.logger.debug(`TOKEN ${token} IS WORKING`);
+      return true;
+    } else {
+      this.logger.debug(`TOKEN ${token} IS NOT WORKING`);
+      return false;
+    }
+  }
+
   async fetchChainsFungibleTokens() {
     this.logger.log('START CHAIN FUNGIBLE TOKENS IMPORT');
 
-    const chains = Array.from(Array(20).keys()); // [0..19]
+    const chains = Array.from(Array(20).keys());
     const fungibleTokens: string[][] = [];
 
     for (const chainId of chains) {
@@ -38,8 +68,23 @@ export class ChainDataService {
         this.logger.error(`Batch token fetching failed for chain ${chainId}`);
         chainTokens = await this.getChainTokens(chainId?.toString());
       }
-      console.log(`CHAIN ${chainId} chainTokens:`, chainTokens.length);
-      fungibleTokens.push(chainTokens);
+      let validChainTokens = [];
+      let i = 1;
+      for (const token of chainTokens) {
+        const isValidToken = await this.isTokenWorking(token, chainId);
+        if (isValidToken) {
+          this.logger.debug(
+            `${i}/${chainTokens.length} TOKEN ${token} IS WORKING`,
+          );
+          validChainTokens.push(token);
+        } else {
+          this.logger.error(
+            `${i}/${chainTokens.length} TOKEN ${token} IS NOT WORKING`,
+          );
+        }
+        i++;
+      }
+      fungibleTokens.push(validChainTokens);
     }
 
     const founded = await this.chainDataModel.findOneAndUpdate(
