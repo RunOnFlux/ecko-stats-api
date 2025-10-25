@@ -13,7 +13,7 @@ export const getApiBalance = (apiBalance) => {
   return balance;
 };
 
-export const CHAINWEB_ESTATS_URL = 'https://estats.chainweb.com/txs/events';
+export const CHAINWEB_ESTATS_URL = 'https://kadena.dapp.runonflux.io/txs/events';
 
 export const isKdaCoin = (refData: IRefData): boolean => {
   return refData.refName.namespace === null && refData.refName.name === 'coin';
