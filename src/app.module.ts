@@ -9,7 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DailyVolumeModule } from './modules/daily-volume/daily-volume.module';
 import { DailyTvlModule } from './modules/daily-tvl/daily-tvl.module';
 import { TokenCandlesModule } from './modules/token-candles/token-candles.module';
-import { KucoinModule } from './modules/kucoin/kucoin.module';
+import { GateioModule } from './modules/gateio/gateio.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { DexDataModule } from './modules/dex-data/dex-data.module';
@@ -31,7 +31,7 @@ import { LiquidityPoolsModule } from './modules/liquidity-pools/liquidity-pools.
     DailyVolumeModule,
     DailyTvlModule,
     TokenCandlesModule,
-    KucoinModule,
+    GateioModule,
     AnalyticsModule,
     DexDataModule,
     ChainDataModule,

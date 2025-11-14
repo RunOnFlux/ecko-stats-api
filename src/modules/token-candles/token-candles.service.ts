@@ -25,10 +25,10 @@ import {
   IKSwapExchangeSWAP,
   IRefData,
 } from 'src/interfaces/kswap.exchange.SWAP.interface';
-import { KucoinService } from '../kucoin/kucoin.service';
-import { GetCandlesResponse } from '../kucoin/interfaces/kucoin.interfaces';
+import { GateioService } from '../gateio/gateio.service';
+import { GetCandlesResponse } from '../gateio/interfaces/gateio.interfaces';
 
-export const KUCOIN_CANDLES_CACHE_PREFIX = 'kucoin-kda-usdt';
+export const GATEIO_CANDLES_CACHE_PREFIX = 'gateio-kda-usdt';
 
 @Injectable()
 export class TokenCandlesService {
@@ -38,7 +38,7 @@ export class TokenCandlesService {
     private tokenCandlesModel: Model<TokenCandleDocument>,
     @InjectConnection() private connection: Connection,
     private readonly httpService: HttpService,
-    private readonly kucoinService: KucoinService,
+    private readonly gateioService: GateioService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -100,19 +100,18 @@ export class TokenCandlesService {
 
   async getKdaUsdCandle(day: Date): Promise<GetCandlesResponse> {
     const value: GetCandlesResponse = await this.cacheManager.get(
-      `${KUCOIN_CANDLES_CACHE_PREFIX}-${moment(day).format('YYYY-MM-DD')}`,
+      `${GATEIO_CANDLES_CACHE_PREFIX}-${moment(day).format('YYYY-MM-DD')}`,
     );
-    // let candle = null;
     if (!value) {
-      const candles = await this.kucoinService.getCandles({
-        symbol: 'KDA-USDT',
-        startAt: moment(day).subtract(20, 'days').unix(),
-        endAt: moment(day).add(1, 'days').unix(),
-        type: '1day',
+      const candles = await this.gateioService.getCandles({
+        currency_pair: 'KDA_USDT',
+        from: moment(day).subtract(20, 'days').unix(),
+        to: moment(day).add(1, 'days').unix(),
+        interval: '1d',
       });
       for (const c of candles) {
         await this.cacheManager.set(
-          `${KUCOIN_CANDLES_CACHE_PREFIX}-${c.timeString}`,
+          `${GATEIO_CANDLES_CACHE_PREFIX}-${c.timeString}`,
           c,
           { ttl: 3600 },
         );
@@ -336,11 +335,11 @@ export class TokenCandlesService {
     let startUnix = moment(dateStart).unix();
     let limitUnix = moment(dateStart).add(dayLimit, 'days').unix();
     do {
-      const candles = await this.kucoinService.getCandles({
-        symbol: `${asset}-${currency}`,
-        startAt: startUnix,
-        endAt: limitUnix,
-        type: '1day',
+      const candles = await this.gateioService.getCandles({
+        currency_pair: `${asset}_${currency}`,
+        from: startUnix,
+        to: limitUnix,
+        interval: '1d',
       });
       for (const c of candles) {
         const candle = {
